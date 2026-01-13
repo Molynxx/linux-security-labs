@@ -17,7 +17,7 @@ Katalog /tmp służy do przechowywania plików tymczasowych tworzonych przez sys
 
 ## wnioski SOC
 Nie stwierdzono oznak złośliwej aktywnośći.
-Zachowanie zgodne z nirmalną pracą systemu.
+Zachowanie zgodne z normalną pracą systemu.
 
 ## Bezpieczne czyszczenie /tmp
 - restart sysemu
@@ -27,3 +27,8 @@ Zachowanie zgodne z nirmalną pracą systemu.
 ## Czego nie robić
 - nie usuwać katalogu '/tmp'
 - nie czyścić katalogu podczas instalacji lub aktualizacji
+
+## Wnioski ogólne
+- Ktalog /tmp to katalog systemowy przchowjący pliki tymczasowe
+- Zawartość katalogu /tmp jest zazwyczaj czyszczona automatycznie (np. przy restarcie systemu), jednak sam katalog nie powinien być usuwany, ponieważ jest wymagany do poprawnego działania systemu.
+- Ze względu na otwarty charaker katalogu /tmp oraz fakt, że często zapisywane są w nim pliki wykonywalne i skrypty, warto regularnie monitorować jego zawartość pod kątem potencjalnych oznak złośliwego oprogramowania lub nadużyć.
