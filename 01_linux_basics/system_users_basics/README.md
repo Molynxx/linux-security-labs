@@ -9,9 +9,9 @@ Celem Laba było zapoznananie się z rodzajami użytkowników systemu Linux w ce
 
 ## Obserwacje
 - w systemie występują trzy typy użytkowników:
-	1. root - użytkownik administracyjny o pełnych uprawnieniach,
-	2. użytkownicy systemowi - konta używane przez usługi i demony,
-	3. użytkownicy interaktywni (ludzie) - konta przeznaczone do logowania przez użytkowników.
+	I. root - użytkownik administracyjny o pełnych uprawnieniach,
+	II. użytkownicy systemowi - konta używane przez usługi i demony,
+	III. użytkownicy interaktywni (ludzie) - konta przeznaczone do logowania przez użytkowników.
 - Użytkownicy interaktywni:
 	- posiadają katalog /home,
 	- mają przypisaną powłokę (/bin/bash, /bin/zsh).
