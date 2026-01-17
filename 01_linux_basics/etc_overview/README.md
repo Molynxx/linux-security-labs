@@ -5,8 +5,8 @@ Celem tego laboratorium było zapoznanie się z plikami konfiguracyjnymi w katal
 - '/etc/passwd'
 - '/etc/group'
 - '/etc/shadow'
-- '/etc/sudores'
-- '/etc/shh/sshd_config'
+- '/etc/sudoers'
+- '/etc/ssh/sshd_config'
 
 Analiza tych plików pozwala zrozumieć:
 - jakie konta istnieją w systemie, 
@@ -81,7 +81,7 @@ Plik /etc/group zawiera informacje o grupach w systemie:
 ### Wnioski bezpieczeństwa
 - Jeśli grupa systemowa nie zawiera żadnego użytkownika, jest to normalne i można zignorować,
 - Jeśli grupa systemowa zawiera użytkownika interaktywnego, należy sprawdzić, czy powinen mieć w niej dostęp - szczgónie w grupach sudo, adm, docker, 
-- Grupy użytkowników interaktywnych należy zawsze dokładnie sprawdzić, aby upenić się, że nie ma nieautoryzowanych członków. 
+- Grupy użytkowników interaktywnych należy zawsze dokładnie sprawdzić, aby upewnić się, że nie ma nieautoryzowanych członków. 
 
 ## /ect/shadow
 
@@ -109,7 +109,7 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : )
 
 ### Obserwacje
 - W pliku można wyróżnić dwa rodzaje kont:
-	- Użytkownicy systemowi - UID < 1000, często mają zablokowaną możliwość logoeania ( !, !!, !* ).
+	- Użytkownicy systemowi - UID < 1000, często mają zablokowaną możliwość logowania ( !, !!, !* ).
 	- Użytkownicy interaktywni - UID >=1000, posiadają hash hasła. 
 
 ### Wnioski bezpieczeństwa
@@ -118,8 +118,9 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : )
 	- czy konto interaktywne ma wymuszoną zmianę hasła,
 	- czy ustawione są ostrzeżenia przed wygaśnięciem hasła,
 
-### Potencjalne zarożenia
-- Konta systemowe z aktywnym hashem zamist blokady (!, !!) - może to świadczyć o nieautoryzowanym dostępie. Należy wtedy sprawdzić w pliku /etc/passwd czy konto ma dostęp do /bin/bash - jeśli tak to zachodzi podejrzenie backdora. 
+### Potencjalne zagrożenia
+- Konta systemowe z aktywnym hashem zamist blokady (!, !!) - może to świadczyć o nieautoryzowanym dostępie. Należy wtedy sprawdzić w pliku /etc/passwd czy konto ma dostęp do /bin/bash. To jednak nie jest równoznaczne z atakiem, zdarza się, że administrator tworzy konto systemowe z hasłem dla specyficznych usług. SOC powinien sprawdzić kontekst konta. 
+- jeśli tak to zachodzi podejrzenie backdora. 
 - Konta systemowe z czasową blokadą logownia (!) mogą zostać odblokowane przez osobę nieuprawnioną, tutaj również należy sprawdzić w /etc/passwd czy konto ma dostep do /bin/bash. Jeśli tak to potencjalne zagrożenie. 
 - Konta interaktywnych użytkowników, które nie mają wymuszonej zmiany hasła lub nie mają go wcale i mają bardzo długie maksymalne dni ważności również stanowią potencjalne zagrożenie. 
 
