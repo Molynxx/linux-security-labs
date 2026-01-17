@@ -75,7 +75,7 @@ Plik /etc/group zawiera informacje o grupach w systemie:
 ### Obserwacje
 - Podczas modyfikacji zmiennych środowiskowych należy zwracać uwagę na używaną powłokę systemu,
 - W pliku /etc/group wyrózniono dwa rodzaje grup:
-	- Grupy systemowe - zawierają użytkownikóœ systemowych, GID <1000, często nie pokazują użytkowników,
+	- Grupy systemowe - zawierają użytkowników systemowych, GID <1000, często nie pokazują użytkowników,
 	- Grupy użytkowników - zawierają użytkowników interaktywnych, GID >= 1000, członkowie są wymienieni w pliku.
 
 ### Wnioski bezpieczeństwa
@@ -88,9 +88,10 @@ Plik /etc/group zawiera informacje o grupach w systemie:
 ### Czym jest /etc/shadow
 Plik /etc/shadow zawiera informacje o:
 - blokadach kont,
-- danych dotyczących zmiany hasłą, 
+- danych dotyczących zmiany hasła, 
 - wymuszeniu zmiany hasła,
 - wygaśnięciu konta.
+
 Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : ):
 - login użytkownika,
 - hash hasła,
@@ -108,29 +109,35 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : )
 
 ### Obserwacje
 - W pliku można wyróżnić dwa rodzaje kont:
-	- Użytkownicy systemowi - UID < 1000, często mają zablokowaną możliwość logoeania (!, !!, !).
-	- Użytkownicy interaktywni - UID >=1000, posiadają hask hasła. 
+	- Użytkownicy systemowi - UID < 1000, często mają zablokowaną możliwość logoeania ( !, !!, !* ).
+	- Użytkownicy interaktywni - UID >=1000, posiadają hash hasła. 
 
 ### Wnioski bezpieczeństwa
 - Na co zwrócić uwagę w pliku /etc/shadow:
-	- czy konto systemowe lub interaktywny użytkownik ma hasło czy jet zablokowane ( !,!!,!* ), 
+	- czy konto systemowe lub interaktywny użytkownik ma hasło czy jest zablokowane ( !,!!,!* ), 
 	- czy konto interaktywne ma wymuszoną zmianę hasła,
 	- czy ustawione są ostrzeżenia przed wygaśnięciem hasła,
 
 ### Potencjalne zarożenia
 - Konta systemowe z aktywnym hashem zamist blokady (!, !!) - może to świadczyć o nieautoryzowanym dostępie. Należy wtedy sprawdzić w pliku /etc/passwd czy konto ma dostęp do /bin/bash - jeśli tak to zachodzi podejrzenie backdora. 
-- Konta systemowe z czasową blokadą logownia (!) moga zostać odblokowane przez osobę nieuprawnioną, tutaj również należy sprawdzić w /etc/passwd czy konto ma dostep do /bin/bash. Jeśli tak to potencjalne zagrożenie. 
+- Konta systemowe z czasową blokadą logownia (!) mogą zostać odblokowane przez osobę nieuprawnioną, tutaj również należy sprawdzić w /etc/passwd czy konto ma dostep do /bin/bash. Jeśli tak to potencjalne zagrożenie. 
 - Konta interaktywnych użytkowników, które nie mają wymuszonej zmiany hasła lub nie mają go wcale i mają bardzo długie maksymalne dni ważności również stanowią potencjalne zagrożenie. 
 
 ### Przykłady zabezpieczeń dla kont podejrzanych 
 - Zablokowanie interaktywnego shella:
+
 	sudo usermod -s /usr/sbin/nologin <nazwa_użytkownika>
 - Trwałe zablokowanie hasła:
+
 	sudo passwd -l <nazwa_użytkownika>
 - Ograniczenie dostępu do SSH - w pliku /etc/ssh/sshd_config uwstawić:
-	DebtUsers <nazwa_użytkownika>
+
+	DenyUsers <nazwa_użytkownika>
 - Sprawdzenie ustawień sudo:
+
 	sudo -l -U <nazwa_użytkownika>
 - monitorowanie zmian w shadow:
+
 	stat /etc/shadow
+	
 	zwracamy tutaj uwagę na godzinę zmian, zmianę właściciela, zmianę zawartości pliku, zmiany uprawnień pliku.
