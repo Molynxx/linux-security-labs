@@ -110,7 +110,7 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : )
 ### Obserwacje
 - W pliku można wyróżnić dwa rodzaje kont:
 	- Użytkownicy systemowi - UID < 1000, często mają zablokowaną możliwość logowania ( !, !!, !* ).
-	- Użytkownicy interaktywni - UID >=1000, posiadają hash hasła. 
+	- Użytkown icy interaktywni - UID >=1000, posiadają hash hasła. 
 
 ### Wnioski bezpieczeństwa
 - Na co zwrócić uwagę w pliku /etc/shadow:
@@ -126,19 +126,56 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : )
 
 ### Przykłady zabezpieczeń dla kont podejrzanych 
 - Zablokowanie interaktywnego shella:
-
 	sudo usermod -s /usr/sbin/nologin <nazwa_użytkownika>
 - Trwałe zablokowanie hasła:
-
 	sudo passwd -l <nazwa_użytkownika>
 - Ograniczenie dostępu do SSH - w pliku /etc/ssh/sshd_config uwstawić:
-
 	DenyUsers <nazwa_użytkownika>
 - Sprawdzenie ustawień sudo:
-
 	sudo -l -U <nazwa_użytkownika>
 - monitorowanie zmian w shadow:
-
 	stat /etc/shadow
-	
 	zwracamy tutaj uwagę na godzinę zmian, zmianę właściciela, zmianę zawartości pliku, zmiany uprawnień pliku.
+
+## /etc/sudoers
+
+### Czym jest /etc/sudoers
+Plik /etc/sudoers definiuje kto i jakie polecenia może uruchamiać z podwyższonymi uprawnieniami. Obejmu dane:
+- kto,
+- na jakim hoście,
+- jako jaki użytkownik,
+- jakie polecenie może uruchomić.
+
+### Wykonane kroki
+- Przejrzano plik /etc/sudoers za pomocą polecenia sudo less,
+- Przejrzano pliki znajdujące się w katalogu /etc/sudoers.d/* za pomocą polecenia sudo ls,
+- Uruchomiono sudo visudo żeby otworzyć plik /etc/sudoers z możliwością edycji,
+- Utworzono nowego użytkownika nienależącego do żadnej uprzywilejowanej grupy,
+- Utworzono plik w /etc/sudoers.d/ o nazwie zgodniej z nazwą użytkownika za pomocą polecenia sudo visudo -f /etc/sudoers.d/user-apt,
+- W powyższym pliku nadano user uprawnienia root dla sudo apt update i sudo apt upgrade wpisując linię pliku 'user ALL=(root) /usr/bin/apt update, /usr/bin/apt upgrade',
+- Sprawdzono jakie polecenia z uprawnieniami root może uruchomić user, za pomocą polecenia sudo -l -U user.
+
+### Obserwacje 
+- Grupa root ma pełne uprawnienia bez użycia sudo, natomiast użtkownicy z grupy sudo uzyskują pełne uprawnienia za pommocą polecenie sudo, zgodnie z konfigurajcą pliku /etc/sudoers,
+- Powyższe oznacza, że każdy użytkownik dodany do jednej z tych grup zyska pełne prawa do wszystkiego jako root,
+- Plik /etc/sudoers jest chtoniony uprawnieniami i nie może być odczytany przez zwykłego użytkownika. Do bezpiecznej edycji używa się wyłącznie visudo,
+- Plil /etc/sudoers można otworzyć bezpiecznie poleceniem sudo less, ponieaż używając tego polecenia nie ma możliwości edycji pliku,
+- W katalogu /etc/sudoers.d/* znadjują się pliki konfiguracyjne uprawenień dla poszczególnych użytkowników, m.in. plik zdefiniowany przeze mnie dla nowego użytkownika user.
+
+### Wnioski bezpieczeństwa
+Na co trzeba zwrócić uwagę:
+- Kto ma pełny dostęp, w pliku /etc/sudoers widać jakie prawa mają grupy root i sudo, sprawdzić w /etc/group kto należy do tych grup i czy napewno powinien tam należeć, 
+- Kto ma NOPASSWD,
+- Czy są nietypowe wpisy w pliki /etc/sudoers,
+- Czy są nietypowe, nieznane pliki w katalogu /etc/sudoers.d/
+
+### Potencjalne zagrożenia
+- Każdy użytkownik z NOPASSWD to potencjalny wektor ataku, 
+- Nietypowe polecenia pozwalające na zapis do systemowych katalogów (/etc, /root, var) powinny być dokłądnie sprawdzone, czy rzeczywiście powinny tam być, 
+- Jeśli użytkownik jest w grupie sudo, dla której konfiguracja pliku /etc/sudoers nadaje pełne uprawenienia, nie ma możliwości zablokowania mu czegokoliwek, dlatego jeśli użytkownik ma mieć tylko niektóre prawa roota należy usunąć go z grupy sudo i dodać stosowny plik w /etc/sudoers.d/ by nadać mu indywidualne uptawenienia,
+- Chcąc zabronić użytkownikowi dostępu  do /bin/bash ze względów bezpieczeństwa, nie można zrobić tego dodając wpis w /etc/sudoers.d/plikusera 'user ALL = (ALL) ALL !/bin/bash', ponieważ można to obejść korzystając z innych powłowk niż bash, np użucie podpowłoki zhs,
+- Nie zadziała również zapis 'user ALL =(ALL) ALL !/bin/bash, !/bin/sh, !/bin/zsh', ponieważ nadal można to obejść na kilka sposobów:
+	- sudo -s,
+	- sudo -i,
+	- env.
+- Najskuteczniejszym sposobem zabezpieczenia jest zapis w osobnym pliku dla danego użytkownika w /etc/sudoers.d/, gdzie można przykładowo nadać uprawnienia root użytkownikowi dla poleceń apt update i apt upgrade za pomocą pzapisu w pliku : 'user ALL=(root) /usr/bin/apt update, /usr/bin/apt upgrade.
