@@ -1,4 +1,4 @@
-# Lab: /etc - analiza plików konfigruacyjnych systemu
+# Lab: /etc - analiza plików konfiguracyjnych systemu
 
 ## Cel
 Celem tego laboratorium było zapoznanie się z plikami konfiguracyjnymi w katalogu '/etc' które mają znaczenie dla bezpieczeństwa systemu, w szczególności:
@@ -33,6 +33,7 @@ Plik '/etc/passwd' zawiera informacje o użytkownikach systemu:
 - Występują trzy rodzaje użytkowników:
 	- root - konto administracyjne z dostępem interaktywnym,
 	- użytkownicy systemowi - UID < 1000, powłoka /user/bin/nologin lub /bin/false,
+	- zakresy UID mogą się różnić w zależności od dystrybucji i konfiguracji systemu,
 	- użytkownicy interaktywni - UID > 1000, powłoka /bin/bash, /bin/zsh lub /bin/sh, katalog domowy w /home.
 - Niektóre konta systemowe mogą mieć interaktywny shell (np. postgres) - to są wyjątki.
 
@@ -61,13 +62,13 @@ Plik /etc/group zawiera informacje o grupach w systemie:
 - Celem powyższych działań było upewnienie się, że żaden nieautoryzowany użytkownik nie uzyskał dostępu,
 - Utworzono katalog na skrypty i ustawiono jego uprawnienia wyłącznie dla właściciela,
 - Stworzono skrypt wyświetlający wszystkich użytkowników z /etc/passwd oraz listę grup, do których należą,
-- Dodano skrypt do zmiennej środowiskowej $PATH, aby można go było uruchomić z dowolnego miejsca w systemie.
+- Dodano skrypt do zmiennej środowiskowej $PATH, aby można go było uruchomić z dowolnego miejsca w systemie. (Kontekst poboczny (shell/środowisko).
 
 ### Napotkane problemy
 - Polecenie source ~/.bashrc zgłaszało wiele błędów, a skrypt .sh w $PATH nie działał.
 
 ### Rozwiązanie problemu
-- Zrozumiano, jak dziłają powłoki w systemie,
+- Zrozumiano, jak działają powłoki w systemie,
 - Kali Linux używa powłoki zsh, a nie bash, co było przyczyną problemów, 
 - Aby naprawić problem, skrypt .sh przeniesiono do pliku konfiguracyjnego powłoki zsh, tj. ~/.zshrc,
 - Po tych krokach problem został rozwiązany i skrypt działał poprawnie.
@@ -121,7 +122,7 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : )
 ### Potencjalne zagrożenia
 - Konta systemowe z aktywnym hashem zamiast blokady (!, !!) - może to świadczyć o nieautoryzowanym dostępie. Należy wtedy sprawdzić w pliku /etc/passwd czy konto ma dostęp do /bin/bash. To jednak nie jest równoznaczne z atakiem, zdarza się, że administrator tworzy konto systemowe z hasłem dla specyficznych usług. SOC powinien sprawdzić kontekst konta. 
 - jeśli tak to zachodzi podejrzenie backdoora. 
-- Konta systemowe z czasową blokadą logowania (!) mogą zostać odblokowane przez osobę nieuprawnioną, tutaj również należy sprawdzić w /etc/passwd czy konto ma dostęp do /bin/bash. Jeśli tak to potencjalne zagrożenie. 
+- Konta systemowe z czasową blokadą logowania (!) mogą zostać odblokowane przez osobę nieuprawnioną jeśli atakujący uzyskał uprawnienia administracyjne, tutaj również należy sprawdzić w /etc/passwd czy konto ma dostęp do /bin/bash. Jeśli tak to potencjalne zagrożenie. 
 - Konta interaktywnych użytkowników, które nie mają wymuszonej zmiany hasła lub nie mają go wcale i mają bardzo długie maksymalne dni ważności również stanowią potencjalne zagrożenie. 
 
 ### Przykłady zabezpieczeń dla kont podejrzanych 
@@ -184,7 +185,7 @@ Na co trzeba zwrócić uwagę:
 ## /etc/ssh
 
 ### Czym jest /etc/ssh
-Jest to katalog przechowujący pliki konfiguracyjne dla usługi SSH (Secude Shell), służącej do zdalnego logowania do systemu. Główny plik konfiguracyjny serwera SSH znajduje się w ścieżce:  /etc/ssh/sshd_config. W pliku można zdefiniować m.in.:
+Jest to katalog przechowujący pliki konfiguracyjne dla usługi SSH (Secure Shell), służącej do zdalnego logowania do systemu. Główny plik konfiguracyjny serwera SSH znajduje się w ścieżce:  /etc/ssh/sshd_config. W pliku można zdefiniować m.in.:
 - sposób łączenia się do systemów zdalnego,
 - port i adresy nasłuchu,
 - metody uwierzytelniania,
@@ -200,7 +201,7 @@ Warto podkreślić, że plik sshd_config nie pokazuje domyślnych ani aktualnie 
 	- port,
 	- listenaddress,
 	- addressfamily,
-	- permiotrootlogin,
+	- permitrootlogin,
 	- passwordauthentication,
 	- pubkeyauthentication,
 	- allowusers,
@@ -227,7 +228,7 @@ Warto podkreślić, że plik sshd_config nie pokazuje domyślnych ani aktualnie 
 	- passwordauthentication ustawiony jest na yes,
 	- pubkeyauthentication ustawiony jest na yes,
 	- permitepmtypassword ustawiony jest na no, 
-	- allowuserws oraz denyusers nie są skonfigurowane,
+	- allowusers oraz denyusers nie są skonfigurowane,
 	- allowgropups oraz denygroups nie są skonfigurowane, 
 	- maxauthtries ustawione jest na 6,
 	- usepam ustawione jest na yes.
@@ -235,15 +236,16 @@ Warto podkreślić, że plik sshd_config nie pokazuje domyślnych ani aktualnie 
 
 ### Wnioski bezpieczeństwa
 - Domyślny port 22 jest powszechnie znany i często skanowany. Zmiana portu na niestandardowy (niekolidujący z innymi usługami) może ograniczyć automatyczne ataki typu brute force,
-- Nasłuchiwanie na wszystkich adresach IPv6 ([::}) nie zawsze jest konieczne. Jeśli nIPv6 nie jest używane, warto rozważyć ustawienie familyaddress na inet, aby ograniczyć nasłuch wyłącznie do IPv4. 
+- Nasłuchiwanie na wszystkich adresach IPv6 ([::}) nie zawsze jest konieczne. Jeśli nIPv6 nie jest używane, warto rozważyć ustawienie addressfamily na inet, aby ograniczyć nasłuch wyłącznie do IPv4. 
 - Nasłuchiwanie na 0.0.0.0 jest poprawne funkcjonalnie, jednak z punktu widzenia bezpieczeństwa można ograniczyć powierzchnię ataku poprzez przypisanie SSH do konkretnego interfejsu lub adresu IP,
 - Ustawienie permitrootlogin prohibit-password jest dobrą praktyką uniemożliwia logowanie roota za pomocą hasła, co znacząco ogranicza ryzyko brute force,
 - passwordauthentication yes stanowi potencjalne zagrożenie bezpieczeństwa, bezpieczniejszym rozwiązaniem jest wyłączenie logowania hasłem i korzystanie wyłącznie z kluczy SSH.
 - pubkeyauthentication yes jest ustawieniem bezpiecznym i zalecanym, 
 - permitemptypassword no jest najlepszym możliwym ustawieniem - logowanie bez hasła znacząco zwiększa powierzchnię ataku, 
-- Brak konfiguracji allowusers / denyusers oraz allowgroups / denygroups oznacza brak ograniczeń dostępu. Najbezpieczniejszym podejściem jest jawne wskazanie użytkowników lub grup, które mogą korzystać z AAH, pamiętając, że reguły deny* mają pierwszeństwo,
+- Brak konfiguracji allowusers / denyusers oraz allowgroups / denygroups oznacza brak ograniczeń dostępu. Najbezpieczniejszym podejściem jest jawne wskazanie użytkowników lub grup, które mogą korzystać z SSH, pamiętając, że reguły deny* mają pierwszeństwo,
 - maxauthtries ustawione na 6 może ułatwić brute force, zalecaną wartością jest 3, z uwzględnieniem możliwości pomyłki użytkownika,
 - usepam yes, oznacza że SSH korzysta z mechanizmów PAM. SSH korzysta z PAM, dlatego ograniczenia logowania mogą wynikać z polityk PAM, a nie tylko z ustawień SSH. W tym przypadki to właśnie PAM ograniczył liczbę prób logowania do 3, mimo wyższej wartości w konfiguracji SSH, co należy uznać za poprawne działanie mechanizmów bezpieczeństwa.
 
 ### Kontekst SOC
 Zmiany w konfiguracji SSH, uruchamianie lub zatrzymywanie usługi SSH oraz wielokrotnie nieudane próby logowania są zdarzeniami istotnymi z punktu widzenie SOC. Powinny one być monitorowane i korelowane z logami systemowymi (journalctl, auth.log) oraz alertami dotyczącymi brute force, nieautoryzowanego dostępu lub nieautoryzowanych zmian konfiguracyjnych.
+
