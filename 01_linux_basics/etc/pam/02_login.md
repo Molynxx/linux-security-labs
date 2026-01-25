@@ -106,17 +106,16 @@ Po zakończonych pracach administrator usuwa plik nologin poleceniem rm przywrac
 
 ## Tabela modułów dla pliku login
 <table>
-	<thead>
-		<tr>
-			<th>Typ PAM</th>
-			<th>Moduł</th>
-			<th>Flaga</th>
-			<th>Rola w logowaniu lokalnym (login)</th>
-		</tr>
-	</thead>
-	<tbody>
+<thead>
+<tr>
+<th>Typ PAM</th>
+<th>Moduł</th>
+<th>Flaga</th>
+<th>Rola w logowaniu lokalnym (login)</th>'</tr>
+</thead>
+<tbody>
 
-		<tr>
+<tr>
 			<td>auth</td>
 			<td>pam_unix.so</td>
 			<td>required</td>
@@ -124,9 +123,9 @@ Po zakończonych pracach administrator usuwa plik nologin poleceniem rm przywrac
 				Sprawdza hasło użytkownika na podstawie <code>/etc/shadow</code>.<br>
 			Podstawowy mechanizm uwierzytelniania przy logowaniu lokalnym.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>auth</td>
 			<td>pam_faildelay.so</td>
 			<td>optional</td>
@@ -134,39 +133,39 @@ Po zakończonych pracach administrator usuwa plik nologin poleceniem rm przywrac
 				Wprowadza opóźnienie po nieudanej próbie logowania.<br>
 				Utrudnia ataki brute force, nie wpływa na decyzję PAM.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>account</td>
 			<td>pam_nologin.so</td>
 			<td>requisite</td>
 			<td>
-				Blokuje logwanie zwykłych użytkowników, gdy ustnieje plik <code>/etc/nologin</code>.<br>
+				Blokuje logowanie zwykłych użytkowników, gdy istnieje plik <code>/etc/nologin</code>.<br>
 				Root nadal może się zalogować.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>account</td>
 			<td>pam_unix.so</td>
-			<td>requred</td>
+			<td>required</td>
 			<td>
 				Sprawdza status konta (blokada, wygaśnięcie, polityka konta).<br>
 				Hasło może być poprawne, ale konto nadal może być niedozwolone.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>session</td>
 			<td>pam_limits.so</td>
 			<td>required</td>
 			<td>
-				BNakłada limity zasobów (CPU, pamięć, liczba procesów).<br>
+				Nakłada limity zasobów (CPU, pamięć, liczba procesów).<br>
 				Chroni system przed nadużyciami i DoS ze strony użytkownika.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>session</td>
 			<td>pam_env.so</td>
 			<td>required</td>
@@ -174,47 +173,47 @@ Po zakończonych pracach administrator usuwa plik nologin poleceniem rm przywrac
 				Ustawia zmienne środowiskowe sesji użytkownika.<br>
 				Wpływa na sposób uruchamiania powłoki i programów.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>session</td>
 			<td>pam_loginuid.so</td>
 			<td>required</td>
 			<td>
 				Przypisuje identyfikator logowania do sesji.<br>
-				Kluczowe dla audytu i systemóiw monitoringu (auditd).
+				Kluczowe dla audytu i systemów monitoringu (auditd).
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>session</td>
-			<td>pam_selinux</td>
+			<td>pam_selinux.so</td>
 			<td>required</td>
 			<td>
-				Ustawia kontekst SElinuc dla sesji użytkownika.<br>
+				Ustawia kontekst SElinux dla sesji użytkownika.<br>
 				Zmienia egzekwowanie polityki MAC po zalogowaniu.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>session</td>
-			<td>pam_lastlog</td>
+			<td>pam_lastlog.so</td>
 			<td>optional</td>
 			<td>
 				Rejestruje i wyświetla informacje o ostatnim logowaniu użytkownika.<br>
 				Pomocne przy analizie incydentów.
 			</td>
-		</tr>
+</tr>
 
-		<tr>
+<tr>
 			<td>session</td>
-			<td>pam_motd</td>
+			<td>pam_motd.so</td>
 			<td>optional</td>
 			<td>
 				Wyświetla komunikaty systemowe po zalogowaniu.<br>
 				Nie wpływa na bezpieczeństwo logowania.
 			</td>
-		</tr>
+</tr>
 
-	</tbody>
+</tbody>
 </table>
