@@ -8,22 +8,22 @@ To plik konfigurujący PAM dla aplikacji login, znajdującej się w /bin/login. 
 - uwierzytelnienie użytkownika, 
 - sprawdzenie systemu i konta,
 - utworzenie pełnej sesji użytkownika.
-Ta aplikacja odpowiedzialna jest za podstawowe, niskopoziomowe zabezpieczenie systemy, które działa zawsze, nawet jeśli ktoś ominie SSH lub GUI. Podczas gdy SSH umożliwia jedynie dostęp zdalny do systemu, login robi wiele więcej: 
+Ta aplikacja odpowiedzialna jest za podstawowe, niskopoziomowe zabezpieczenie systemu, które zabezpiecza lokalny dostęp do systemu i działa niezależnie od SSH i GUI. Podczas gdy SSH umożliwia jedynie dostęp zdalny do systemu, login robi wiele więcej: 
 Login:
 - pyta o użytkownika, 
-- sprawdza hasło (przez MAP -> /etc./shadow),
+- sprawdza hasło (przez PAM -> /etc/shadow),
 - ustawia pełną sesję,
 - ustawia UID, GID, grupy,
 - ustawia środowisko,
 - rejestruje sesję,
-- obsługuje selinux - czyli kontekst bezpieczeństwa logowania i sesji,
+- obsługuje SELinux - czyli kontekst bezpieczeństwa logowania i sesji,
 - reaguje na tryb maintenance (konserwacji).
 
 ## Jakie zastosowanie ma plik /etc/pam.d/login
-Plik ten jest zbiorem instrukcji jak aplikacja powinna działać w zgodzie z PAM, są w nim zdefiniowane sposoby obsługiwania modułów standardowych. W pliku tym mogę być załączone pliki common, które stanowią zbiór wspólnych zasad dla aplikacji oraz indywidualne modyfikacje działania modułów dla aplikacji login. 
+Plik ten jest zbiorem instrukcji jak aplikacja powinna działać w zgodzie z PAM, są w nim zdefiniowane sposoby obsługiwania modułów standardowych. W pliku tym mogą być załączone pliki common, które stanowią zbiór wspólnych zasad dla aplikacji oraz indywidualne modyfikacje działania modułów dla aplikacji login. 
 
 ## Kolejność wywoływania modułów przez login
-LKogin wywołuje moduły w następującej kolejności:
+Login wywołuje moduły w następującej kolejności:
 - auth,
 - account,
 - session,
@@ -36,25 +36,25 @@ Ten zapis zawiera rozszerzoną flagę kontroli i mówi:
 - typ session = dotyczy otwierania sesji,
 - flaga - tu rozszerzona flaga kontrolna, czyli zamiast required, requisite, sufficient, optional, jest:
 	- success=ok:
-		- selinux istnieje,
+		- SELinux istnieje,
 		- jest włączony, 
 		- odpowiada.
 		To oznacza, że wszystko jest w porządku, sesja nie jest blokowana,
 	- ignore=ignore:
-		- selinux jest wyłączony,
+		- SELinux jest wyłączony,
 		- sesja go nie dotyczy.
 		To oznacza, że wszystko jest w porządku, sesja może być kontynuowana,
 	-module_unknown=ignore:
-		- selinux nie istnieje w systemie (nie jest zainstalowany),
-		- dystrybucja nie używa selinux.
-		Ten zapis nie oznacza błędu, mówi, że jeśli selinux nie istnieje w systemie to należy co pominąć, żeby nie nastąpiła blokada sesji,
+		- SELinux nie istnieje w systemie (nie jest zainstalowany),
+		- dystrybucja nie używa SELinux.
+		Ten zapis nie oznacza błędu, mówi, że jeśli SELinux nie istnieje w systemie to należy go pominąć, żeby nie nastąpiła blokada sesji,
 	-default=bad:
 		- wszystko inne niż powyższe oznacza błąd, wskazuje, że moduł nie działa poprawnie, że istnieją błędy np.:
 			- błąd inicjalizacji, 
-			- uszkodzona konfiguracja selinux,
+			- uszkodzona konfiguracja SELinux,
 			- wewnętrzny błąd modułu, 
 			- brak dostępu do polityk.
-			W tym przypadku uznawane jest to za niebezpieczne i sesja może zostac przerwana. 
+			W tym przypadku uznawane jest to za niebezpieczne i sesja może zostać przerwana. 
 		Rozszerzone flagi dla modułu pam_selinux.so działają wyłącznie z typem session.
 Tego rodzaju zapisy z rozszerzonymi flagami kontroli pozwalają na większą elastyczność, ponieważ required nie rozróżnia 'nie ma' od 'nie działa'.
 
@@ -79,21 +79,21 @@ Kolejność modułów w obrębie jednego typu ma ogromne znaczenie.
 - pliki common - na końcu.
 
 ## pam_nologin.so
-To istotny moduł, który warto zrozumieć lepiej. Moduł ten może być stosowany w plikach konfiguracji PAM dla każdej aplikacji. To jest moduł sprawdzający czy system nie jest w trybie mainenance. Administrator systemu, prowadząc prace serwisowe lub naprawcze może potrzebować spokoju w systemie. Nologin pozwala mu ograniczyć dostęp do systemu dla wszystkich użytkowników poza root, żeby jego działa mogły zakończyć się bezpiecznie. Jeśli plik PAM dla aplikacji ma zapis:
-	account pam_nologin.so
-to w pierwszej kolejności zostanie sprawdzone czy system nie jest w stanie maintenance, jeśli tak jest, żaden użytkownik się nie zaloguje. Sprawdzenie czy system jest w stanie mainetance polega na sprawdzeniu czy plik /etc/nologin istnieje.
+To istotny moduł, który warto zrozumieć lepiej. Moduł ten może być stosowany w plikach konfiguracji PAM dla każdej aplikacji. To jest moduł sprawdzający czy system nie jest w trybie maintenance. Administrator systemu, prowadząc prace serwisowe lub naprawcze może potrzebować spokoju w systemie. Nologin pozwala mu ograniczyć dostęp do systemu dla wszystkich użytkowników poza root, żeby jego działania mogły zakończyć się bezpiecznie. Jeśli plik PAM dla aplikacji ma zapis:
+	account requisite pam_nologin.so
+to w pierwszej kolejności zostanie sprawdzone czy system nie jest w stanie maintenance, jeśli tak jest, żaden użytkownik się nie zaloguje. Sprawdzenie czy system jest w stanie maintenance polega na sprawdzeniu czy plik /etc/nologin istnieje.
 Jak to działa:
 Administrator tworzy plik tekstowy, który wyświetli na ekranie użytkownika komunikat, np.: 'system w trakcie prac serwisowych'. By stworzyć taki plik wystarczy, że użytkownik zalogowany jako root posłuży się takim poleceniem: 
 	sudo echo "System w trakcie prac serwisowych" > /etc/nologin
 lub użytkownik zalogowany jako sudo:
-	sudo sh -c " echo 'system w trakcie prac serwisowych" > /etc/nologin"
-to polecenie zapisuje plik nologin jako root. To bezpieczniejsza forma niż logowanie się na root-a.
+	sudo sh -c " echo 'system w trakcie prac serwisowych' > /etc/nologin"
+to polecenie zapisuje plik nologin jako root. To bezpieczniejsza forma niż logowanie się na roota.
 Po zakończonych pracach administrator usuwa plik nologin poleceniem rm przywracając dostęp użytkownikom. 
 
 ## Czerwone flagi SOC
 - usunięcie modułu pam_nologin.so,
-- zmiany w pam_securitty.so,
-- manipulacje w typie session (zmiana limitów, grup, selinux, itd),
+- zmiany w nietypowych / niestandardowych  modułach PAM (np.pam_securitty.so),
+- manipulacje w typie session (zmiana limitów, grup, SELinux, itd),
 - zmiany w plikach common,
 - login działający gdy system powinien być zamknięty (backdoor).
 
@@ -111,7 +111,8 @@ Po zakończonych pracach administrator usuwa plik nologin poleceniem rm przywrac
 <th>Typ PAM</th>
 <th>Moduł</th>
 <th>Flaga</th>
-<th>Rola w logowaniu lokalnym (login)</th>'</tr>
+<th>Rola w logowaniu lokalnym (login)</th>
+</tr>
 </thead>
 <tbody>
 
