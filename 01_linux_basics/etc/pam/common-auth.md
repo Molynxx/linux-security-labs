@@ -61,7 +61,7 @@ Wniosek: To jest krytycznie zła konfiguracja pliku narażona na brute force i g
 
 ### Przykład 3
 auth required pam_faillock.so preauth
-auth [success=3 default=ignore] pam_unix.so
+auth [success=2 default=ignore] pam_unix.so
 auth required pam_sss.so
 auth requisite pam_deny.so
 auth required pam_permit.so
