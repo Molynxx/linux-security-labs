@@ -38,7 +38,7 @@ W tym przypadku success=1 oznacza, że jeśli moduł zwróci sukces to jedna kol
 - Zmiana flagi z required na sufficient może stanowić bypass, a zmiana modułów  uwierzytelniających na optional może powodować nieograniczony dostęp do systemu. 
 
 ## Przykłady analizy konfiguracji (case study) 
-Poniższe przykłady zawierają użycie opcji dla modułu pam_faollock.so, watro tutaj wspomnieć czym te opcję są. 
+Poniższe przykłady zawierają użycie opcji dla modułu pam_faillock.so, watro tutaj wspomnieć czym te opcję są. 
 	Moduł pam_faillock.so występuje zwykle dwukrotnie: z opcją preauth, która sprawdza czy konto nie jest już zablokowane przed uwierzytelnieniem, oraz opcją authfail, która zlicza nieudane próby po błędnym haśle. Obie opcje pełnią rożne role i muszą być użyte w osobnych liniach PAM.
 	W przypadku gdy polityka modułu jest określona w pliku konfiguracyjnym moduły /etc/security/faillock.conf nie ma konieczności używania opcji, ale trzeba zawsze najpierw zweryfikować ustawienia pliku .conf.
 
