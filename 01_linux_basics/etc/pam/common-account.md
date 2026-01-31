@@ -66,6 +66,7 @@ account requisite pam_nologin.so
 account required pam_unix.so  
 account required pam_faillock.so  
 account requisite pam_deny.so  
+
 Analiza: Wszystkie moduły tutaj mają właściwą flagę, jednak kolejność modułów unix i faillock nie są poprawne, Dobra praktyka wymaga sprawdzenia czy moduł faillock nie zablokował konta ze względu na zbyt dużą ilość nieudanych prób, które mogą świadczyć o brute force. W tym przypadku konto może przejść część walidacji a dopiero potem zostać zablokowane ze względu na ilość prób. To nie jest twardy bypass, nie stanowi też jednoznacznego zagrożenia, jednak ponieważ jest to mało czytelne może prowadzić do edge-case-ów. Ponadto w tym przypadku brak jawnego 'allow' (moduł permit) oznacza, że decyzja opiera się tylko na tym czy któryś moduł się nie powiódł. Może to prowadzić do nieprawnego działania systemu i utrudniać audyt i reasoning.
 Wniosek: Nieoczekiwane zagrożenie, konfiguracja niezalecana, należy ją poprawić zmieniając kolejność modułów unix i faillock oraz dodając na końcu moduł permit. 
 
