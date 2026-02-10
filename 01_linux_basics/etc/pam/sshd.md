@@ -4,16 +4,16 @@
 Zrozumienie polityki PAM dla usługi SSH.
 
 ## Czym jest /etc/pam.d/sshd
-Gdy PAM jest włączone dla usługi SSH (w konfiguracji UsePam yes), PAM działa dla usługi SSH z pierwszeństwem nad pozostałą konfiguracją. SSH nie decyduje sam – przekazuje żądania do PAM, a PAM decyduje, czy użytkownik może się zalogować i na jakich warunkach.
+Gdy UsePam 'yes' SSH deleguje część decyzji uwierzytelniania i kontroli dostepu do PAM. Parametry SSH nadal obowiązują (np. PermitRootLogin, PasswordAuthentication), ale PAM może dodatkowo zablokować dostęp, nawet jeśli SSH by go dopuścił. SSH nie decyduje sam – przekazuje żądania do PAM, a PAM decyduje, czy użytkownik może się zalogować i na jakich warunkach.
 Plik /etc/pam.d/sshd nie jest plikiem konfiguracyjnym SSH, tylko reguluje politykę PAM dla tej usługi.
 
 ## Jakie zastosowanie ma plik /etc/pam.d/sshd
 Ten plik nie:
 - ustala długości haseł,
-- nie liczy prób logowania,
-- nie blokuje kont.
+- nie liczy prób logowania (robi to common-auth i moduł pam_faillock.so),
+- nie blokuje kont (robi to common-account przy pomocy modułu pam_faillock.so).
 Plik mówi, do kogo przesłać żądanie PAM, tzn.:
-- zawiera dołączone pliki polityki PAM za pomocą @include:
+- zwykle zawiera dołączone pliki polityki PAM za pomocą @include:
 - common-auth,
 - common-account,
 - common-password,
@@ -34,7 +34,7 @@ W pliku zwykle znajdziesz:
 
 ## Jak działają zapisy w pliku PAM dla aplikacji (przykład SSH)
 Przykład: auth sufficient pam_ssh_key.so
-- poprawny klucz SSH podczas logowania → sukces, PAM kończy fazę auth, kolejne moduły auth mogą zostać pominięte,
+- poprawny klucz SSH podczas logowania → sukces, PAM kończy fazę auth, kolejne moduły auth mogą zostać pominięte. Uwaga: Użycie pam_ssh_key.so z flagą suffcient jest dopuszczalne tylko wtedy, gdy moduły ochronne (pam_faillock.so, pam_faildelay.so) znadjują się przed nim. W przeciwnym razie logowanie kluczem może omijać mechanizmy ochronne.
 - niepoprawny klucz SSH → sprawdzane są kolejne moduły uwierzytelniania (np. hasło).
 
 ## Kolejność modułów w typach PAM
@@ -104,16 +104,7 @@ Każdy typ powinien mieć co najmniej jeden moduł z flagą required.
       Ochrona brute-force.
     </td>
   </tr>
-  <tr>
-    <td>auth</td>
-    <td>pam_tally2.so</td>
-    <td>required</td>
-    <td>
-      Alternatywne liczenie nieudanych prób logowania.<br>
-      Wspiera blokady kont.
-    </td>
-  </tr>
-  <tr>
+    <tr>
     <td>auth</td>
     <td>pam_faildelay.so</td>
     <td>required</td>
