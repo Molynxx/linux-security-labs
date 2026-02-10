@@ -4,7 +4,7 @@ Celem Laba było zapoznanie się z rodzajami użytkowników systemu Linux w celu
 ## Wykonane kroki
 - Przegląd pliku /etc/passwd w celu:
 	- identyfikacji typów użytkowników,
-	- zrozumienie pól takich jak nazwa użytkownika, UID, katalog domowy i powłoka (shell) oraz ich znaczenia z perspektywy bezpieczeństwa.
+	- zrozumienie znaczenia pól takich jak nazwa użytkownika, UID, katalog domowy i powłoka (shell) oraz ich znaczenia z perspektywy bezpieczeństwa.
 - Analiza polecenia last w celu sprawdzenia historii udanych logowań.
 
 ## Obserwacje
@@ -13,7 +13,7 @@ Celem Laba było zapoznanie się z rodzajami użytkowników systemu Linux w celu
 	- użytkownicy systemowi - konta używane przez usługi i demony,
 	- użytkownicy interaktywni (ludzie) - konta przeznaczone do logowania przez użytkowników.
 - Użytkownicy interaktywni:
-	- posiadają katalog /home,
+	- zwykle posiadają katalog w /home,
 	- mają przypisaną powłokę (/bin/bash, /bin/zsh).
 - Użytkownicy systemowi:
 	- często nie posiadają katalogu domowego lub mają katalog techniczny (np. /var/lib/...),
@@ -26,13 +26,13 @@ Celem Laba było zapoznanie się z rodzajami użytkowników systemu Linux w celu
 - Użytkownicy systemowi powinni mieć zablokowaną możliwość logowania (nologin lub false).
 - Użytkownicy interaktywni stanowią naturalny wektor ataku, (np. przejęcie konta, brute force).
 - W przypadku wykrycia podejrzanego użytkownika należy:
-	- ustalić moment utworzenia konta (jeśli dostępny),
+	- ustalić moment utworzenia konta (jeśli dostępny np. backupy, auditd, provisioning logs),
 	- zweryfikować, czy konto było zgłoszone i autoryzowane,
 	- sprawdzić, czy logowania odbywały się lokalnie czy zdalnie (SSH),
 	- przeanalizować historię logowań.
 - Do analizy:
 	- udanych logowań służy polecenie last, 
-	- nieudanych logowań standardowo służy lastb.
+	- nieudanych logowań standardowo służy lastb, jeśli narzędzie jest dostępne w danej dystrybucji.
 
 
 ## Monitorowanie kont interaktywnych (SOC/IR)
