@@ -6,7 +6,7 @@ Katalog /tmp służy do przechowywania plików tymczasowych tworzonych przez sys
 ## Co właśnie sprawdzałam
 - właściciela plików i katalogów,
 - uprawnienia, (szczególnie bit wykonywalny 'x'),
-- czas znaczników plików (mtime, citime),
+- czas znaczników plików (mtime, ctime),
 - kontekst (aktualizacja systemu).
 
 ## Obserwacje
@@ -21,7 +21,7 @@ Zachowanie zgodne z normalną pracą systemu.
 
 ## Bezpieczne czyszczenie /tmp
 - restart systemu
-- 'sudo rm -rf /tmp/* ' - jednak tutaj trzeba przeprowadzać ręczne czyszczenie ostrożnie i najlepiej w czasie, gdy system nie wykonuje krytycznych operacji, 
+- 'sudo rm -rf /tmp/* ' - jednak tutaj trzeba przeprowadzać ręczne czyszczenie ostrożnie i najlepiej w czasie, gdy system nie wykonuje krytycznych operacji. Ważna uwaga: niektóre aplikacje mogą trzymać otwarte deskryptony plików w /tmp - ręczne czyszczenie może powodować błędy aplikacji. 
 - usuwanie plików starszych niż x dni
 
 ## Czego nie robić
@@ -31,6 +31,7 @@ Zachowanie zgodne z normalną pracą systemu.
 ## Wnioski ogólne
 - Katalog /tmp to katalog systemowy przechowujący pliki tymczasowe
 - Zawartość katalogu /tmp jest zazwyczaj czyszczona automatycznie (np. przy restarcie systemu), jednak sam katalog nie powinien być usuwany, ponieważ jest wymagany do poprawnego działania systemu.
+- Z perspektywy bezpieczeństwa katalog /tmp bywa wykorzystywany przez malware do dropowania payloadów, eskalacji uprawnień (np. ataki typu symlink) lub uruchamiania plików tymczasowych.
 - Ze względu na otwarty charakter katalogu /tmp oraz fakt, że często zapisywane są w nim pliki wykonywalne i skrypty, warto regularnie monitorować jego zawartość pod kątem potencjalnych oznak złośliwego oprogramowania, nowych plików wykonywalnych lub nadużyć.
 - uprawnienia katalogu /tmp i znaczenie dla bezpieczeństwa: 
 	- Katalog /tmp zwykle ma uprawnienia drexrwxrwt (tzw. sticky bit). Oznacza to że:
