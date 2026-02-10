@@ -45,6 +45,8 @@ Plik '/etc/passwd' zawiera informacje o użytkownikach systemu:
 	- kiedy i skąd logowało się konto (last, ssh, lokalnie),
 	- czy logowania były w nietypowych godzinach.
 - Użytkownicy z UID >= 1000 powinni mieć powłokę interaktywną i katalog domowy; każde odstępstwo wymaga uwagi.
+- UID 0 oznacza konto root - w systemie powinno istnieć tylko jedno konto z UID 0. Obecność dodatkowego konta z UID 0 może wskazywać na backdor lub nieautoryzowane konto.
+- Konto systemowe z interaktywnym shellem (/bin/bash, /bin/zsh) wymaga weryfikacji, nawet jkeśli uUID <1000.
 
 ## /etc/group
 
@@ -83,6 +85,8 @@ Plik /etc/group zawiera informacje o grupach w systemie:
 - Jeśli grupa systemowa nie zawiera żadnego użytkownika, jest to normalne i można zignorować,
 - Jeśli grupa systemowa zawiera użytkownika interaktywnego, należy sprawdzić, czy powinien mieć w niej dostęp - szczególnie w grupach sudo, adm, docker, 
 - Grupy użytkowników interaktywnych należy zawsze dokładnie sprawdzić, aby upewnić się, że nie ma nieautoryzowanych członków. 
+	- Oprócz sudo, adm, docker warto sprawdzać grupy takie jak whell (w niektórych dystrybucjach) i shadow pod kątem nietypowych członków.
+	- Każda obecność interaktywnego użytkownika w grupach systemowych wymaga weryfikacji.
 
 ## /ect/shadow
 
@@ -118,9 +122,12 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem : )
 	- czy konto systemowe lub interaktywny użytkownik ma hasło czy jest zablokowane ( !,!!,!* ), 
 	- czy konto interaktywne ma wymuszoną zmianę hasła,
 	- czy ustawione są ostrzeżenia przed wygaśnięciem hasła,
+	- Hash "*" lub "!" oznacza, że konto jest zablokowane,
+- Brak hasła lub ustawienie zbyt długiego maksymalnego okresu hasła (max days)może stanowić ryzyko bezpieczeństwa,
+- Aby sprawdzić szczegóły konta pod kątem ważności hasła, można użyć polecenia: chage -l <nazwa_użytkownika>.
 
 ### Potencjalne zagrożenia
-- Konta systemowe z aktywnym hashem zamiast blokady (!, !!) - może to świadczyć o nieautoryzowanym dostępie. Należy wtedy sprawdzić w pliku /etc/passwd czy konto ma dostęp do /bin/bash. To jednak nie jest równoznaczne z atakiem, zdarza się, że administrator tworzy konto systemowe z hasłem dla specyficznych usług. SOC powinien sprawdzić kontekst konta. 
+- Konta systemowe z aktywnym hashem zamiast blokady (!, !!, *) - może to świadczyć o nieautoryzowanym dostępie. Należy wtedy sprawdzić w pliku /etc/passwd czy konto ma dostęp do /bin/bash. To jednak nie jest równoznaczne z atakiem, zdarza się, że administrator tworzy konto systemowe z hasłem dla specyficznych usług. SOC powinien sprawdzić kontekst konta. 
 - jeśli tak to zachodzi podejrzenie backdoora. 
 - Konta systemowe z czasową blokadą logowania (!) mogą zostać odblokowane przez osobę nieuprawnioną jeśli atakujący uzyskał uprawnienia administracyjne, tutaj również należy sprawdzić w /etc/passwd czy konto ma dostęp do /bin/bash. Jeśli tak to potencjalne zagrożenie. 
 - Konta interaktywnych użytkowników, które nie mają wymuszonej zmiany hasła lub nie mają go wcale i mają bardzo długie maksymalne dni ważności również stanowią potencjalne zagrożenie. 
@@ -180,6 +187,8 @@ Na co trzeba zwrócić uwagę:
 	- sudo -i,
 	- env.
 - Najskuteczniejszym sposobem zabezpieczenia jest zapis w osobnym pliku dla danego użytkownika w /etc/sudoers.d/, gdzie można przykładowo nadać uprawnienia root użytkownikowi dla poleceń apt update i apt upgrade za pomocą zapisu w pliku : 'user ALL=(root) /usr/bin/apt update, /usr/bin/apt upgrade.
+- Tworzenie oddzielnych plików w /etc/sudoers.d/ umożliwia nadawanie granularnych uprawnień, ograniczając ryzyko pełnego dostępu do roota. 
+- Każdy mowy wpis w sudoers lub sudoers.d powinien być weryfikowany pod kątem nietypowych poleceń, zwłaszcza zapisów umożliwiających zapis do systemowych katalogów (/etc, /root, /var).
 
 
 ## /etc/ssh
@@ -199,17 +208,17 @@ Warto podkreślić, że plik sshd_config nie pokazuje domyślnych ani aktualnie 
 - Sprawdzono efektywną konfigurację SSH za pomocą polecenia sudo sshd -T,
 - Za pomocą polecenia sudo sshd -T | grep "słowo kluczowe" sprawdzono konfigurację:
 	- port,
-	- listenaddress,
-	- addressfamily,
-	- permitrootlogin,
-	- passwordauthentication,
-	- pubkeyauthentication,
-	- allowusers,
-	- denyusers,
-	- allowgroups,
-	- denygroups, 
-	- maxauthtries,
-	- usepam.
+	- ListenAddress,
+	- AddressFamily,
+	- PermitRootLogin,
+	- PasswordAuthentication,
+	- PubKeyAuthentication,
+	- AllowUsers,
+	- DenyUsers,
+	- AllowGroups,
+	- DenyGroups, 
+	- MaxAuthTries,
+	- UsePam.
 - Sprawdzono zawartość katalogu /etc/security/, w którym nie znaleziono pliku pwquality.conf,
 - Zainstalowano pakiet libpam-pwquality za pomocą polecenia sudo apt install,
 - Sprawdzono plik /etc/pam.d/common-password,
@@ -223,29 +232,31 @@ Warto podkreślić, że plik sshd_config nie pokazuje domyślnych ani aktualnie 
 - Usługa SSH była domyślnie wyłączona w systemie Kali Linux,
 - Po sprawdzeniu efektywnej konfiguracji poleceniem sudo sshd -T stwierdzono, że:
 	- port ustawiony jest na 22, 
-	- listenaddress ustawiony na 0.0.0.0 oraz [::], co oznacza nasłuch na wszystkich adresach IPv4 i IPv6,
-	- permitrootloigin ustawione jest na prohibit-password,
-	- passwordauthentication ustawiony jest na yes,
-	- pubkeyauthentication ustawiony jest na yes,
-	- permitepmtypassword ustawiony jest na no, 
-	- allowusers oraz denyusers nie są skonfigurowane,
-	- allowgropups oraz denygroups nie są skonfigurowane, 
-	- maxauthtries ustawione jest na 6,
-	- usepam ustawione jest na yes.
-- Pomimo ustawienia maxauthtries na wartość 6, po trzech nieudanych próbach logowania sesja SSH została przerwana, co wskazuje na działanie  polityk PAM.
+	- ListenAddress ustawiony na 0.0.0.0 oraz [::], co oznacza nasłuch na wszystkich adresach IPv4 i IPv6,
+	- PermitRootLoigin ustawione jest na prohibit-password,
+	- PasswordAuthentication ustawiony jest na yes,
+	- PubKeyAuthentication ustawiony jest na yes,
+	- PermitEpmtyPassword ustawiony jest na no, 
+	- AllowUsers oraz DenyUsers nie są skonfigurowane,
+	- AllowGropups oraz DenyGroups nie są skonfigurowane, 
+	- MaxAuthTries ustawione jest na 6,
+	- UsePam ustawione jest na yes.
+- Pomimo ustawienia MaxAuthTries na wartość 6, po trzech nieudanych próbach logowania sesja SSH została przerwana, co wskazuje na działanie  polityk PAM.
 
 ### Wnioski bezpieczeństwa
 - Domyślny port 22 jest powszechnie znany i często skanowany. Zmiana portu na niestandardowy (niekolidujący z innymi usługami) może ograniczyć automatyczne ataki typu brute force,
-- Nasłuchiwanie na wszystkich adresach IPv6 ([::}) nie zawsze jest konieczne. Jeśli nIPv6 nie jest używane, warto rozważyć ustawienie addressfamily na inet, aby ograniczyć nasłuch wyłącznie do IPv4. 
+- Nasłuchiwanie na wszystkich adresach IPv6 ([::}) nie zawsze jest konieczne. Jeśli nIPv6 nie jest używane, warto rozważyć ustawienie AddressFamily na inet, aby ograniczyć nasłuch wyłącznie do IPv4. 
 - Nasłuchiwanie na 0.0.0.0 jest poprawne funkcjonalnie, jednak z punktu widzenia bezpieczeństwa można ograniczyć powierzchnię ataku poprzez przypisanie SSH do konkretnego interfejsu lub adresu IP,
-- Ustawienie permitrootlogin prohibit-password jest dobrą praktyką uniemożliwia logowanie roota za pomocą hasła, co znacząco ogranicza ryzyko brute force,
-- passwordauthentication yes stanowi potencjalne zagrożenie bezpieczeństwa, bezpieczniejszym rozwiązaniem jest wyłączenie logowania hasłem i korzystanie wyłącznie z kluczy SSH.
-- pubkeyauthentication yes jest ustawieniem bezpiecznym i zalecanym, 
-- permitemptypassword no jest najlepszym możliwym ustawieniem - logowanie bez hasła znacząco zwiększa powierzchnię ataku, 
-- Brak konfiguracji allowusers / denyusers oraz allowgroups / denygroups oznacza brak ograniczeń dostępu. Najbezpieczniejszym podejściem jest jawne wskazanie użytkowników lub grup, które mogą korzystać z SSH, pamiętając, że reguły deny* mają pierwszeństwo,
-- maxauthtries ustawione na 6 może ułatwić brute force, zalecaną wartością jest 3, z uwzględnieniem możliwości pomyłki użytkownika,
-- usepam yes, oznacza że SSH korzysta z mechanizmów PAM. SSH korzysta z PAM, dlatego ograniczenia logowania mogą wynikać z polityk PAM, a nie tylko z ustawień SSH. W tym przypadki to właśnie PAM ograniczył liczbę prób logowania do 3, mimo wyższej wartości w konfiguracji SSH, co należy uznać za poprawne działanie mechanizmów bezpieczeństwa.
+- Ustawienie PermitRootLogin prohibit-password jest dobrą praktyką uniemożliwia logowanie roota za pomocą hasła, co znacząco ogranicza ryzyko brute force,
+- PasswordAuthentication yes stanowi potencjalne zagrożenie bezpieczeństwa, bezpieczniejszym rozwiązaniem jest wyłączenie logowania hasłem i korzystanie wyłącznie z kluczy SSH.
+- PubKeyAuthentication yes jest ustawieniem bezpiecznym i zalecanym, 
+- PermitEmptyPassword no jest najlepszym możliwym ustawieniem - logowanie bez hasła znacząco zwiększa powierzchnię ataku, 
+- Brak konfiguracji AllowUsers / DenyUsers oraz AllowGroups / DenyGroups oznacza brak ograniczeń dostępu. Najbezpieczniejszym podejściem jest jawne wskazanie użytkowników lub grup, które mogą korzystać z SSH, pamiętając, że reguły deny* mają pierwszeństwo,
+- MaxAuthTries ustawione na 6 może ułatwić brute force, zalecaną wartością jest 3, z uwzględnieniem możliwości pomyłki użytkownika,
+- UsePam yes, oznacza że SSH korzysta z mechanizmów PAM. SSH korzysta z PAM, dlatego ograniczenia logowania mogą wynikać z polityk PAM, a nie tylko z ustawień SSH. W tym przypadki to właśnie PAM ograniczył liczbę prób logowania do 3, mimo wyższej wartości w konfiguracji SSH, co należy uznać za poprawne działanie mechanizmów bezpieczeństwa.
 
 ### Kontekst SOC
 Zmiany w konfiguracji SSH, uruchamianie lub zatrzymywanie usługi SSH oraz wielokrotnie nieudane próby logowania są zdarzeniami istotnymi z punktu widzenie SOC. Powinny one być monitorowane i korelowane z logami systemowymi (journalctl, auth.log) oraz alertami dotyczącymi brute force, nieautoryzowanego dostępu lub nieautoryzowanych zmian konfiguracyjnych.
+- Należy monitorować auth.log i jouralctl pod kątem prób brute force oraz nieautoryzowanych zmian w konfiguracji SSH,
+- Warto regularnie sprawdzać efektywną konfigurację SSH (sudo ssh -T) po każdej zmianie plików konfiguracyjnych,
 
