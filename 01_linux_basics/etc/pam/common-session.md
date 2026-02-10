@@ -24,7 +24,7 @@ W tym module występują zupełnie inne moduły (nie licząc pam.unix.so) niż w
 	- usuwa / nadpisuje niebezpieczne wartości,
 	- zapewnia, że sesja startuje w przewidywalnym stanie. 
 	pam_env czyta pliki /etc/environment oraz /etc/security/pam_env.conf
-- pam_mask.so - to jest instrukcja jakie uprawnienia mają być zabrane nowo tworzonym plikom i katalogom. On nie ustala uprawnień, on zabiera część z nich w momencie otwarcia sesji. 
+- pam_umask.so - to jest instrukcja jakie uprawnienia mają być zabrane nowo tworzonym plikom i katalogom. On nie ustala uprawnień, on zabiera część z nich w momencie otwarcia sesji. 
 	- domyślnie pobiera wartość umask z konfiguracji systemowej (np.  /etc/login.defs, /etc/profile, /etc/bashrc - zależnie od dystrybucji),
 	- opcjonalnie można wymusić konkretną wartość bezpośrednio w linii modułu PAM, np.: session optional pam_umask.so umask=027.
 - pam_unix.so - odpowiada za otworzenie, utrzymanie i zamknięcie sesji użytkownika. Rejestruje w systemie:
@@ -41,8 +41,8 @@ pam_systemd.so - rejestruje sesję użytkownika w systemd - logind i podpina ją
 	- umożliwia cleanup przy logout - logout = kill wszystkiego w scope,
 	- umożliwia korelację zdarzeń. 
 	To GŁÓWNY moduł, który integruje PAM z systemd-logind i dzięki temu widzimy sesję w loginctl. 
-- pam_loginuid.so - przypisuje UID (AUID) użytkownika do wszystkich procesów w sesji. Dzięki temu istnieje możliwiśc sprawdzenia kto otworzył proces nawet jeśli otworzył sesję z podwyższonymi uprawnieniami. AUDI (Audit UID) identyfikuje pierwotnego użytkownika, który rozpoczął sesję i nie zmienia się przy eskalacji uprawnień (np. sudo, su).
-W przeciwieństwie do UID /EUDI, które mogą być używane zamiennie w zależności od bieżących uprawnień procesu, AUID pozwala systemowi i mechanizmom audytu jednoznacznie ustalić, kto faktycznie wykonał daną akcję, nawet jeśli działał jako root.
+- pam_loginuid.so - przypisuje UID (AUID) użytkownika do wszystkich procesów w sesji. Dzięki temu istnieje możliwiśc sprawdzenia kto otworzył proces nawet jeśli otworzył sesję z podwyższonymi uprawnieniami. AUID (Audit UID) identyfikuje pierwotnego użytkownika, który rozpoczął sesję i nie zmienia się przy eskalacji uprawnień (np. sudo, su).
+W przeciwieństwie do UID /EUID, które mogą być używane zamiennie w zależności od bieżących uprawnień procesu, AUID pozwala systemowi i mechanizmom audytu jednoznacznie ustalić, kto faktycznie wykonał daną akcję, nawet jeśli działał jako root.
 - pam_exec.so - to moduł pozwalający uruchomić zewnętrzny program lub skrypt na określonym etapie PAM. Jeżeli moduł ma za zadanie uruchomić coś w czasie otwierania sesji, to należy pamiętać, że sesja może się otwierać wiele razy, bo otwiera się za każdym razem gdy następuje logowanie, przejście na innego użytkownika, użycie polecenia podwyższającego uprawnienia. PAM przed uruchomieniem skryptu ustawia zmienne środowiskowe.
 - pam_motd.so - to prosty moduł, który ma tylko jedno zadanie - wyświetlić Message Of The Day użytkownikowi po otwarciu sesji. Pliki z komunikatem znajdują się w:
 	- /etc/motd - statyczny tekst, 
@@ -66,8 +66,8 @@ oba te źródła można podać w opcjach modułu, jednak jeśli opcja pozostaje 
 - pam_unix.so - 'required', bo sesja miso się wykonać w całości inaczej:
 	- nie wykona się przy open -> brak rejestracji sesji,
 	- nie wykona się przy close -> brak cleanup.
-- pam_systemd.so - 'required'. Nawet jesli coś w tym module pójdzie nie tak, to inne moduły muszą się wykonać, logowanie nie powinno się urywać bez cleanup. Brak wykonania pam_systems powoduje, że sesja nie zostaje zarejestrowana w systemd-logind, nie są tworzone scope ani cgroups, przez co systemd traci możliwość poprawnego zarządzania i sprzątania procesów należących do sesji. 
-- pam_loignuid.so - 'required', ponieważ bez ustawionego loginuid mechanizmy audytu nie są w stanie jednoznacznie powiązać działań procesów z pierwotnym użytkownikiem sesji.
+- pam_systemd.so - 'required'. Awaria modułu nie powinna przerwać cleanupu pozostałych mechanizmów. Brak wykonania pam_systemd powoduje, że sesja nie zostaje zarejestrowana w systemd-logind, nie są tworzone scope ani cgroups, przez co systemd traci możliwość poprawnego zarządzania i sprzątania procesów należących do sesji. 
+- pam_loginuid.so - 'required', ponieważ bez ustawionego loginuid mechanizmy audytu nie są w stanie jednoznacznie powiązać działań procesów z pierwotnym użytkownikiem sesji.
 - pam_exec.so - 'optional', ponieważ moduł ten służy do uruchamiania zewnętrznych skryptów pomocniczych, których niepowodzenie nie powinno blokować sesji. Jednak jego konfiguracja wymaga szczególnej uwagi z punktu widzenia bezpieczeństwa.
 - pam_mail.so - 'optional' - to moduł informacyjny, nie wpływa na bezpieczeństwo sesji ani na audyt. 
 - pam_motd.so - 'optional', z dokładnie tych samych powodów co moduł pam_mail.so.
@@ -101,7 +101,7 @@ Skutki:
 - utrudniona analiza incydentów, 
 - brak korelacji zdarzeń,
 - problemy ID i forensics
-Przykładowe moduły: pam_unis.so, pam_loginuid.so.
+Przykładowe moduły: pam_unix.so, pam_loginuid.so.
 
 ### Manipulacja środowiskiem wykonawczym i politykami
 Obejmuje:
@@ -227,7 +227,7 @@ session optional pam_mail.so
 session optional pam_lastlog.so  
 
 Analiza:
-W tym modelu występują dwa istotne dla bezpieczeństwa błędy. Moduł pam_limits.so ma flagę optional, a to oznacza, że moduł może się nie wykonać, a jeśli tak się stanie, nie zostaną nałożone na sesję żadne limity. To może prowadzić do fork bomb (zabicia systemu przez użytkownika tysiącami procesów), lokalnego DoS (zapchanie RAM, FD, CPU) lub core dumpów (zrzuty wrażliwej pamięci). Może także utrudniać pracę IR, ponieważ na jednego użytkownika może przypadać setki tysięcy procesów. Brak wykonania modułu limits to brak kontroli nad szkodami jakie może wyrządzić użytkownik. Drugim poważnym problemem jest brak modułu pam_logiuo=id.so. To moduł, który zapisuje UID użytkownika (AUID). Podczas gdy UID kernela zależy od uprawnień procesów, AUID nadal pamięta i wskazuje na użytkownika aż do zakończenia sesji. Dzięki temu można sprawdzić jaki użytkownik jest odpowiedzialny za proces. Bez niego wystąpiłyby luki w logach, np.: w momentach gdy użytkownik wykona polecenie z podwyższonymi uprawnieniami, to proces jest widoczny jako proces roota, zamiast użytkownika, który wywołał proces z uprawnieniami roota. Dzięki temu modułowi można rozróżnić root z crona i root z loginu użytkownika, zobaczyć eskalację uprawnień, korelować logowanie, proces, syscall, incydent. To bardzo ułatwia audyt. 
+W tym modelu występują dwa istotne dla bezpieczeństwa błędy. Moduł pam_limits.so ma flagę optional, a to oznacza, że moduł może się nie wykonać, a jeśli tak się stanie, nie zostaną nałożone na sesję żadne limity. To może prowadzić do fork bomb (zabicia systemu przez użytkownika tysiącami procesów), lokalnego DoS (zapchanie RAM, FD, CPU) lub core dumpów (zrzuty wrażliwej pamięci). Może także utrudniać pracę IR, ponieważ na jednego użytkownika może przypadać setki tysięcy procesów. Brak wykonania modułu limits to brak kontroli nad szkodami jakie może wyrządzić użytkownik. Drugim poważnym problemem jest brak modułu pam_logiuid.so. To moduł, który zapisuje UID użytkownika (AUID). Podczas gdy UID kernela zależy od uprawnień procesów, AUID nadal pamięta i wskazuje na użytkownika aż do zakończenia sesji. Dzięki temu można sprawdzić jaki użytkownik jest odpowiedzialny za proces. Bez niego wystąpiłyby luki w logach, np.: w momentach gdy użytkownik wykona polecenie z podwyższonymi uprawnieniami, to proces jest widoczny jako proces roota, zamiast użytkownika, który wywołał proces z uprawnieniami roota. Dzięki temu modułowi można rozróżnić root z crona i root z loginu użytkownika, zobaczyć eskalację uprawnień, korelować logowanie, proces, syscall, incydent. To bardzo ułatwia audyt. 
 Sugerowane działanie: 
 Zmienić flagę modułu pam_limits.so na 'required', dodać moduł pam_logiuid.co za modułem pam_systemd.so
 
