@@ -38,7 +38,7 @@ W pliku common-account niemal zawsze moduły występują z flagą 'required', po
 Wyjątkiem są moduły pam_nologin.so i pam_deny.so, które powinny występować z flagą 'requisite'.
 
 ## Zagrożenia związane z plikiem common-account
-- pam_nologin.so - to istotny moduł, który uniemożliwia dostęp zwykłym użytkownikom dostęp do systemu w momencie, kiedy system może być wrażliwy (np. jest w trybie maintenance). Odmowa dostępu nie dotyczy użytkownika root. Dobrą praktyką jest umieszczanie tego modułu  na początku, żeby zabezpieczyć system gdy jest w trybie maitenance. Brak tego modułu, może stwarzać zagrożenie dla systemu podczas prac konserwacyjnych.
+- pam_nologin.so - to istotny moduł, który uniemożliwia dostęp zwykłym użytkownikom dostęp do systemu w momencie, kiedy system może być wrażliwy (np. jest w trybie maintenance). Odmowa dostępu nie dotyczy użytkownika root. Dobrą praktyką jest umieszczanie tego modułu  na początku, żeby zabezpieczyć system gdy jest w trybie maintenance. Brak tego modułu, może stwarzać zagrożenie dla systemu podczas prac konserwacyjnych.
 - brak modułu pam_faillock.so oznacza, że liczenie nieudanych prób logowania odbywa się bez egzekwowania blokady. To czerwona flaga, na którą należy zawsze reagować.
 - pam_unix.so - brak tego modułu oznacza brak sprawdzenia:
 	- czy konto jest zablokowane w /etc/shadow,
@@ -76,7 +76,7 @@ account sufficient pam_unix.so
 account required pam_sss.so  
 account requisite pam_deny.so  
 Analiza: Ten przypadek wymaga odrobinę większego zrozumienia, ponieważ na pierwszy rzut oka, konsekwencje takiego zapisu nie są oczywiste. To, co jest tutaj oczywiste to:
-- brak modułu nologin stanowi zagrożenie dla systemu gdy jest w trybie maitenance,
+- brak modułu nologin stanowi zagrożenie dla systemu gdy jest w trybie maintenance,
 - moduł faillock jest ustawiony we właściwym miejscu i mam poprawnie ustawioną flagę,
 - flaga modułów sss i deny są ustawione poprawnie, podobnie jak kolejność tych modułów w zapisie. 
 Jedynym złym elementem w tym zapisie jest flaga sufficient dla modułu unix. To oczywiste, że jest to zła flaga, lecz nie tak oczywiste są powody dlaczego ta flaga stwarza zagrożenie. Otóż, plik globalny common-account zwykle jest jedynie częścią konfiguracji PAM dołączaną do plików konfiguracji PAM dla aplikacji. Sufficient w module unix powoduje pominięcie wszystkich (nie tylko w ujętych w pliku common) modułów typu account w danym stosie PAM dla tej aplikacji. To oznacza, że jeśli aplikacja poza dołączonym plikiem common-account ma jeszcze jakieś inne moduły, to nie zostaną one wykonane, jeśli znajdują się w stosie za modułem unix z flagą sufficient, gdyż w momencie gdy moduł unix zwróci sukces, typ zostanie zakończony. Konsekwencje takiego zapisu:
@@ -84,7 +84,7 @@ Jedynym złym elementem w tym zapisie jest flaga sufficient dla modułu unix. To
 - gdyby jednak poza plikiem common było ich więcej , to konto lokalne nie było by już w żaden więcej sposób sprawdzane typem account,
 - lokalni użytkownicy  nie muszą przechodzić przez całą drogę walidacji jak użytkownicy domenowi,
 - dodane w przyszłości moduły nie będą dotyczyć kont lokalnych.
-Wniosek: Na plik common-account należy patrzeć szeroko z perspektywy systemu a nie jednego pliku. Sufficient nie powinien się znaleźć przy żadnym module w tym typie. Trzeba przewidywać przyszło modyfikacje i rozwój polityk PAM. Flagę przy module unix należy zmienić na required. 
+Wniosek: Na plik common-account należy patrzeć szeroko z perspektywy systemu a nie jednego pliku. Sufficient nie powinien się znaleźć przy żadnym module w tym typie. Trzeba przewidywać przyszłą modyfikacje i rozwój polityk PAM. Flagę przy module unix należy zmienić na required. 
 
 ### Przykład 3
 account required pam_unix.so  
