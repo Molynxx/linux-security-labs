@@ -1,5 +1,8 @@
 # Analiza katalogu /tmp w Linuxie
 
+## Cel laboratorium
+Celem laboratorium jest zrozumienie jakie zagrożenia wynikają z pliku tmp i jak go monitorować.
+
 ## Czym jest /tmp
 Katalog /tmp służy do przechowywania plików tymczasowych tworzonych przez system i aplikacje. Zawartość może, ale nie musi być usuwana po restarcie systemu - zależy to od konfiguracji systemu (np. tmpfs, systemd-tmpfiles).
 
