@@ -1,3 +1,5 @@
+# System Users Basics
+
 ## Cel laba
 Celem Laba było zapoznanie się z rodzajami użytkowników systemu Linux w celu lepszego zrozumienia, jak analizować logi (np. /var/log) i identyfikować potencjalne zagrożenia związane z nieautoryzowanym dostępem do systemu.
 
