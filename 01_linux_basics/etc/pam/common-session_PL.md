@@ -1,4 +1,4 @@
-# /etc/pam.s/common-session
+# /etc/pam.d/common-session
 
 ## Cel 
 Celem tego laboratorium jest zrozumienie co robi i jak działa plik common-session.
@@ -156,9 +156,9 @@ session optional pam_mail.so
 session optional pam_exec.so
 session optional pam_lastlog.so  
 
-Analiza:
+Analiza:  
 To jest przykład prawidłowego ustawienie common-session. Moduły są w odpowiedniej kolejności a ich flagi są poprawne, model sprawia, że nasza sesja jest bezpieczna. Jedyne co zawsze wymaga sprawdzenia to linki do modułu exec, motd i mail oraz czy do plików znajdujących się w źródle nie zostały utworzone symlinki. 
-Sugerowane działanie:
+Sugerowane działanie:  
 Nie wymagane 
 
 ### Przypadek 2 
@@ -174,9 +174,9 @@ session optional pam_mail.so
 session optional pam_exec.so
 session required pam_lastlog.so 
 
-Analiza: 
+Analiza:   
 Logicznie są tutaj niewielkie błędy. Choć kolejność modułów choć nie jest zgodna z polityką najpierw środowisko, potem rejestracja to jednak nie stanowią istotnego zagrożenia dla bezpieczeństwa sesji ani systemu. Moduł pam_unix.so z punktu widzenia logiki powinien znajdować się po modelu limits a przed systemd, ale obecne ustawienie nie budzi braki zaufania. Jedyny błąd w tym modelu to flaga 'required' przy module lastlog. To jest moduł pomocniczy, który nie musi się wykonać a jednocześnie nie powinien zakłócać wykonania sesji.
-Sugerowanie działanie: 
+Sugerowanie działanie:   
 Zmienić flagę moduły lastlog na optional. 
 
 ### Przypadek 3 
@@ -192,9 +192,9 @@ session optional pam_mail.so
 session optional pam_exec.so
 session optional pam_lastlog.so 
 
-Analiza:
+Analiza:  
 Kolejność modułów w tym przypadku nie budzi podejrzeń, choć umask mogłoby znajdować się przed unix. Krytycznym jednak problemem w tym przypadku jest flaga modułu pam_systemd.so. Jeśli ten moduł się nie wykona, to sesja będzie się wykonywać nadal i jednocześnie nie będzie zarejestrowana w pliku logind, mechanizmy zarządzania nie będą zintegrowane z systemd, nie zostanie utworzone scope ani cgroups. Dzięki scope i cgroups możliwe jest odpowiednie zarządzanie procesami, ponieważ wszystkie procesy użytkownika są podpięte do cgroups, więc wiadomo, które należy zamknąć gdy użytkownik kończy sesję. To dzięki temu modułowi może się wykonać poprawny cleanup. Jeśli ten moduł się nie wykona, procesy zostają po wylogowaniu, malware może łatwiej przetrwać a IR nie wie jakie procesy może zamknąć bez ryzyka zniszczenia dowodów. To bardzo istotny problem z punktu widzenia bezpieczeństwa. 
-Sugerowane działanie:
+Sugerowane działanie:  
 Zmienić flagę modułu systemd na 'required', bo moduł ten musi się wykonać. 
 
 ### Przypadek 4
@@ -209,9 +209,9 @@ session optional pam_mail.so
 session optional pam_exec.so
 session optional pam_lastlog.so  
 
-Analiza:
+Analiza:  
 Kolejny przykład niewłaściwego ustawienia PAM, brak krytycznego modułu - pam_unix.so. Taka konfiguracja może 'oślepić' SOC/IR. Bez tego modułu nie ma wpisów w /var/run/utmp, /var/log/wtmp, /var/log/lastlog. To sprawia, że choć procesy użytkownika są widoczne, nie można sprawdzić czy użytkownik jest online (who, w), kiedy i jak się zalogował i czy się wylogował. Sesja jest niewidoczna. Utrudnia to korelację zdarzeń a sesja może nigdy nie zamknąć się logicznie. TO utrata kontroli i obserwalności.
-Sugerowane działanie:
+Sugerowane działanie:  
 Dodanie modułu pam_unix,so z flagą 'required' przed modułem pam_systemd.so.
 
 ### Przypadek 5
@@ -226,9 +226,9 @@ session optional pam_motd.so
 session optional pam_mail.so
 session optional pam_lastlog.so  
 
-Analiza:
+Analiza:  
 W tym modelu występują dwa istotne dla bezpieczeństwa błędy. Moduł pam_limits.so ma flagę optional, a to oznacza, że moduł może się nie wykonać, a jeśli tak się stanie, nie zostaną nałożone na sesję żadne limity. To może prowadzić do fork bomb (zabicia systemu przez użytkownika tysiącami procesów), lokalnego DoS (zapchanie RAM, FD, CPU) lub core dumpów (zrzuty wrażliwej pamięci). Może także utrudniać pracę IR, ponieważ na jednego użytkownika może przypadać setki tysięcy procesów. Brak wykonania modułu limits to brak kontroli nad szkodami jakie może wyrządzić użytkownik. Drugim poważnym problemem jest brak modułu pam_logiuid.so. To moduł, który zapisuje UID użytkownika (AUID). Podczas gdy UID kernela zależy od uprawnień procesów, AUID nadal pamięta i wskazuje na użytkownika aż do zakończenia sesji. Dzięki temu można sprawdzić jaki użytkownik jest odpowiedzialny za proces. Bez niego wystąpiłyby luki w logach, np.: w momentach gdy użytkownik wykona polecenie z podwyższonymi uprawnieniami, to proces jest widoczny jako proces roota, zamiast użytkownika, który wywołał proces z uprawnieniami roota. Dzięki temu modułowi można rozróżnić root z crona i root z loginu użytkownika, zobaczyć eskalację uprawnień, korelować logowanie, proces, syscall, incydent. To bardzo ułatwia audyt. 
-Sugerowane działanie: 
+Sugerowane działanie:   
 Zmienić flagę modułu pam_limits.so na 'required', dodać moduł pam_logiuid.co za modułem pam_systemd.so
 
 ### Przypadek 6
@@ -244,83 +244,8 @@ session optional pam_mail.so
 session optional pam_exec.so
 session optional pam_lastlog.so  
 
-Analiza: 
+Analiza:   
 W tym przykładzie występuje jeden ale bardzo poważny błąd. Moduł pam_env.so jest oznaczony flagą 'optional', a to oznacza, że moduł ten może się nie wykonać. Zagrożenia wynikające z niewykonania się tego modułu to bardzo szeroka klasa zagrożeń manipulacji zmiennymi środowiskowymi. Atakujący może przechwytywać dane, podmieniać funkcje, logować dane w tle, niszczyć dane, tworzyć nowych użytkowników, edytować sudoers, podmieniać biblioteki. Może spowodować uruchomienie dowolnego złośliwego skryptu za pomocą modyfikacji zmiennych PATH, TMPDIR lub też uszkodzić system, wywołać niewłaściwe polecenie, zmienić argumenty za pomocą zmiennych środowiskowych LOCALE i IFS. Dobrą praktyką jest używać w skryptach zmiennej zawsze w cudzysłowie, co niweluje błędy wynikające z modyfikacji LOCALE i IFS. Podsumowując brak przewidywalnego środowiska otwiera atakującemu drogę do wykonanie wielu rodzajów ataków.
-Sugerowane działanie: zmienić flagę modułu pam_env.so na 'required'.
+Sugerowane działanie:   
+zmienić flagę modułu pam_env.so na 'required'.
 
-<table border="1" cellapadding="5" cellaspacing="0">
-	<thead>
-		<tr>
-			<th>Moduł</th>
-			<th>Co robi</th>
-			<th>Gdzie działa</th>
-			<th>Konsekwencje braku lub złej flagi</th>
-			<th>Uwagi SOC/Blue Team</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr stylle="bacground-color:#ffcccc">
-			<td>pam_unix.so</td>
-			<td>Rejestruje sesję użytkownika, zapisuje historię logowań</td>
-			<td>/var/run/utmp, /var/log/wtmp, /var/log/lastlog</td>
-			<td>Procesy działają, ale sesja niewidoczna; utrudniona korelacja zdarzeń</td>
-			<td>required</td>
-			<td>Podstawa audytu i monitoringu logowań</td>
-		</tr>
-		<tr stylle="bacground-color:#ffcccc">
-			<td>pam_systemd.so</td>
-			<td>Tworzy scope dla sesji w logind, zarządza procesami sesji</td>
-			<td>systemd logind, cgroups, scope</td>
-			<td>Procesy nie są powiązane z sesją; kluczowy do kontroli procesów</td>
-			<td>required</td>
-			<td>Nie powinien być ostatni w stosie; kluczowy do kontroli procesóœ</td>
-		</tr>
-		<tr stylle="bacground-color:#ffeb99">
-			<td>pam_limits.so</td>
-			<td>Nakłada limity zasobów na sesję (procesy, open files, core dumps, memeory, CPU)</td>
-			<td>kernel /cgroups /limits</td>
-			<td>Brak limitów -> DoS, nadmierne użycie zasobów. niekontrolowane core dumps</td>
-			<td>required</td>
-			<td>Ochrona zasobów i kontroli procesów użytkownika</td>
-		</tr>
-		<tr stylle="bacground-color:#ffcccc">
-			<td>pam_env.so</td>
-			<td>Ustawia bezpieczne zmienne środowiskowe (PATH, LD_PRELOAD, TMPDIR, IFS, LOCALE)</td>
-			<td>Proces sesji</td>
-			<td>Brak -> manipulacja środowiskiem, wstrzykiwanie bibliotek, eskalacja uprawnień, wyciek danych</td>
-			<td>required</td>
-			<td>Krytyczny dla bezpieczeństwa; kontrola środowiska podstawa TH/IR</td>
-		</tr>
-		<tr stylle="bacground-color:#ffeb99">
-			<td>pam_loginuid.so</td>
-			<td>Przypisuje UID użytkownika do sesji (loginuid) w kernelu</td>
-			<td>kernel</td>
-			<td>required</td>
-			<td>Warto zawsze włączać dla pełnego audytu</td>
-		</tr>
-		<tr stylle="bacground-color:#ffffcc">
-			<td>pam_umask.so</td>
-			<td>Ustawia domyślny mask dla plików tworzonych sesji</td>
-			<td>Proces sesji / system plików</td>
-			<td>Brak -> pliki mogą mieć zbyt szerokie uprawnienia -> ryzyko wycieku lub modyfikacji danych</td>
-			<td>optional</td>
-			<td>Kontrola bezpieczeństwa plików użytkownika</td>
-		</tr>
-		<tr stylle="bacground-color:#ffffcc">
-			<td>pam_motd.so</td>
-			<td>Wyświetla wiadomość dnia po zalogowaniu</td>
-			<td>Terminal/sesja</td>
-			<td>Brak -> brak ryzyka bezpieczeństwa jedynie brak informacji dla u użytkownika</td>
-			<td>optional</td>
-			<td>Użyteczny do komunikatów administracyjnych</td>
-		</tr>
-		<tr stylle="bacground-color:#ffffcc">
-			<td>pam_exec.so</td>
-			<td>Uruchamia zewnętrzne skrypty lub programy w momencie logowania/wylogowania</td>
-			<td>Proces sesji / shell</td>
-			<td>Brak -> brak dodatkowych akcji, np. logów niestandardowych, cleanup, notyfikacji</td>
-			<td>optional</td>
-			<td>Może wprowadzać własne zagrożenia jeśli źle użyte</td>
-		</tr>
-	</tbody>
-</table>
