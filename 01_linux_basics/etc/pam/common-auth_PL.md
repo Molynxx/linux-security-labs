@@ -19,8 +19,8 @@ Znajdują się tutaj moduły ochronne, uwierzytelniające oraz decyzyjne:
 	- pam_permit.so - moduł kończący stos auth wymuszając końcową decyzję 'allow' (zezwól).
 
 ## Flagi kontrolne dla modułów znajdujących się w common-auth
-W fazie auth zalecanym standardem jest używanie flagi 'required' dla modułów ochronnych, uwierzytelniających oraz decyzyjnych, ponieważ pozwala to na wykonanie pełnego stosu PAM bez ujawniania punktu porażki i minimalizuje ryzyko obejścia polityki bezpieczeństwa. Poza typowymi flagami (required, requisite, sufficient, optional) mogą tutaj wystąpić rozszerzone flagi kontrolne, które pozwalają na większą elastyczność w regulowaniu działania modułów. Przykład:
-auth required [success=1 default=ignore] pam_unix.so
+W fazie auth zalecanym standardem jest używanie flagi 'required' dla modułów ochronnych, uwierzytelniających oraz decyzyjnych, ponieważ pozwala to na wykonanie pełnego stosu PAM bez ujawniania punktu porażki i minimalizuje ryzyko obejścia polityki bezpieczeństwa. Poza typowymi flagami (required, requisite, sufficient, optional) mogą tutaj wystąpić rozszerzone flagi kontrolne, które pozwalają na większą elastyczność w regulowaniu działania modułów.   Przykład:  
+auth required [success=1 default=ignore] pam_unix.so  
 W tym przypadku success=1 oznacza, że jeśli moduł zwróci sukces to jedna kolejna linia zostanie pominięta. To może być potrzebne w takim przypadku, gdy najpierw jest moduł logowania lokalnego pam_unix.so a zaraz potem moduł sprawdzający użytkownika na serwerze pam_sss.so. Jeśli logowanie lokalne się powiedzie, to sprawdzanie danych na serwerze nie jest już potrzebne. 
 
 ## Na co zwracać uwagę
@@ -38,38 +38,47 @@ W tym przypadku success=1 oznacza, że jeśli moduł zwróci sukces to jedna kol
 - Zmiana flagi z required na sufficient może stanowić bypass, a zmiana modułów  uwierzytelniających na optional może powodować nieograniczony dostęp do systemu. 
 
 ## Przykłady analizy konfiguracji (case study) 
-Poniższe przykłady zawierają użycie opcji dla modułu pam_faillock.so, watro tutaj wspomnieć czym te opcję są. 
-	Moduł pam_faillock.so występuje zwykle dwukrotnie: z opcją preauth, która sprawdza czy konto nie jest już zablokowane przed uwierzytelnieniem, oraz opcją authfail, która zlicza nieudane próby po błędnym haśle. Obie opcje pełnią rożne role i muszą być użyte w osobnych liniach PAM.
+Poniższe przykłady zawierają użycie opcji dla modułu pam_faillock.so, watro tutaj wspomnieć czym te opcję są.   
+	Moduł pam_faillock.so występuje zwykle dwukrotnie: z opcją preauth, która sprawdza czy konto nie jest już zablokowane przed uwierzytelnieniem, oraz opcją authfail, która zlicza nieudane próby po błędnym haśle. Obie opcje pełnią rożne role i muszą być użyte w osobnych liniach PAM.  
 	W przypadku gdy polityka modułu jest określona w pliku konfiguracyjnym moduły /etc/security/faillock.conf nie ma konieczności używania opcji, ale trzeba zawsze najpierw zweryfikować ustawienia pliku .conf.
 
 ### Przykład 1
-auth required pam_faillock.so preauth
-auth [success=1 default=ignore] pam_unix.so
-auth sufficient pam_sss.so 
-auth requisite pam_deny.so
-auth required pam_permit.so
-Analiza:
+auth required pam_faillock.so preauth  
+auth [success=1 default=ignore] pam_unix.so  
+auth sufficient pam_sss.so   
+auth requisite pam_deny.so  
+auth required pam_permit.so  
+
+Analiza:  
 - Moduł ochronny i moduł uwierzytelniania są  ustawione poprawnie, w przypadku udanego logowania lokalnego zostanie pominięty moduł pam_sss.so, co jest logiczne, ponieważ skoro powiodło się logowanie  lokalne nie ma już potrzeby sprawdzać danych logowania na serwerze.
-- Zagrożeniem (choć nieoczywistym) jest flaga modułu pam_sss.so. Sufficient w przypadku gdy moduł zwróci sukces to sprawdzanie typu auth się zakończy i pozostałe moduły się nie wykonają, więc mamy do czynienia z bypass modułu pam_deny.so.
-Wniosek: Konfiguracja w takim kształcie jest niezalecana i niebezpieczna, moduł pam_sss.so powinien mieć flagę required. 
+- Zagrożeniem (choć nieoczywistym) jest flaga modułu pam_sss.so. Sufficient w przypadku gdy moduł zwróci sukces to sprawdzanie typu auth się zakończy i pozostałe moduły się nie wykonają, więc mamy do czynienia z bypass modułu pam_deny.so.  
+
+Wniosek:  
+Konfiguracja w takim kształcie jest niezalecana i niebezpieczna, moduł pam_sss.so powinien mieć flagę required. 
 
 ### Przykład 2
-auth sufficient pam_unix.so
-auth required pam_faillock.so
-auth required pam_deny.so
-auth optional pam_permit.so 
-Analiza:
+auth sufficient pam_unix.so  
+auth required pam_faillock.so  
+auth required pam_deny.so  
+auth optional pam_permit.so  
+
+Analiza:  
 - Moduł uwierzytelniający jest przed modułem ochronnym, więc uwierzytelnianie odbywa się bez jakiejkolwiek ochrony przed brute force. 
-- Moduł uwierzytelniający ma flagę sufficient, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe modułu typu auth zostaną pominięte. 
-Wniosek: To jest krytycznie zła konfiguracja pliku narażona na brute force i gwarantuje dostęp po złamaniu hasła. Taka konfiguracja pliku nie powinna nigdy występować. 
+- Moduł uwierzytelniający ma flagę sufficient, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe modułu typu auth zostaną pominięte.   
+
+Wniosek:  
+To jest krytycznie zła konfiguracja pliku narażona na brute force i gwarantuje dostęp po złamaniu hasła. Taka konfiguracja pliku nie powinna nigdy występować. 
 
 ### Przykład 3
-auth required pam_faillock.so preauth
-auth [success=2 default=ignore] pam_unix.so
-auth required pam_sss.so
-auth requisite pam_deny.so
-auth required pam_permit.so
-Analiza:
+auth required pam_faillock.so preauth  
+auth [success=2 default=ignore] pam_unix.so  
+auth required pam_sss.so  
+auth requisite pam_deny.so  
+auth required pam_permit.so  
+
+Analiza:  
 - Moduły są w poprawnej kolejności, występują moduły ochronne. 
-- Moduł uwierzytelniający ma rozszerzoną flagę kontrolną co powoduje, że gdy moduł zwróci sukces nastąpi pominięcie 2 kolejnych linii. Taki zapis ma logiczny sens, ponieważ w przypadku powodzenia podczas uwierzytelniania lokalnego nie ma potrzeby uruchamiać modułu uwierzytelniającego na serwerze ani modułu pam_deny.so. Naturalnym działaniem jest w tym przypadku przeskok do modułu wymuszającego końcową decyzję 'allow'.
-Wniosek: Konfiguracja pliku jest w tym przypadku poprawna i bezpieczna, choć można zwiększyć bezpieczeństwo dodając moduł pam_faildelay.so po pierwszym module ochronnym. 
+- Moduł uwierzytelniający ma rozszerzoną flagę kontrolną co powoduje, że gdy moduł zwróci sukces nastąpi pominięcie 2 kolejnych linii. Taki zapis ma logiczny sens, ponieważ w przypadku powodzenia podczas uwierzytelniania lokalnego nie ma potrzeby uruchamiać modułu uwierzytelniającego na serwerze ani modułu pam_deny.so. Naturalnym działaniem jest w tym przypadku przeskok do modułu wymuszającego końcową decyzję 'allow'.  
+
+Wniosek:   
+Konfiguracja pliku jest w tym przypadku poprawna i bezpieczna, choć można zwiększyć bezpieczeństwo dodając moduł pam_faildelay.so po pierwszym module ochronnym. 
