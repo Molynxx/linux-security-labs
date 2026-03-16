@@ -13,7 +13,7 @@ Plik nie powinien być edytowany ręcznie, bezpieczna modyfikacja pliku wymaga u
 - groupadd,
 - groupmod,
 - groupdel,
-- groupadd -aG.
+- groupmod -aG.
 
 ## Plik /etc/gshadow
 W starych wersjach systemu plik ten zawierał hashe haseł grup (obecnie nie używa się ich). Zawiera informacje o grupach i administratora, dostęp ograniczony do root. Hasła grup rzadko używane. 
@@ -21,15 +21,15 @@ W starych wersjach systemu plik ten zawierał hashe haseł grup (obecnie nie uż
 ## Grupy pierwotne i wtórne (Primary Group, Secondary Group)
 - Primary: główna grupa użytkownika, GID w /etc/passwd,
 - Secondary: dodatkowe grupy.  
-Uwaga bezpieczeństwa: uprawnienia do plików zależą od GID, domyślne prawa zależą od umask. Sama przynależność do grupy sudo niekoniecznie daje uprawnienia systemowe. Na wieli systemach (np. Debian / Ubuntu) uprawnienia dla grup i użytkowników są zapisane w pliku /etc/sudoers.
+Uwaga bezpieczeństwa: uprawnienia do plików zależą od GID, domyślne prawa zależą od umask. Sama przynależność do grupy sudo niekoniecznie daje uprawnienia systemowe. Na wielu systemach (np. Debian / Ubuntu) uprawnienia dla grup i użytkowników są zapisane w pliku /etc/sudoers.
 
 ## Mechanizm kontroli dostępu oparty o grupy
-Grupy wpływają na prawa plików i dostęp do urządzeń / logów / secketów, mogą być zarządzane też przez ALDAP / AD / NSS.
+Grupy wpływają na prawa plików i dostęp do urządzeń / logów / socketów, mogą być zarządzane też przez LDAP / AD / NSS.
 
 ## Wykonane kroki
 - przejrzano plik poleceniem: `cat /etc/group`,
 - użyto `grep sudo` dla pliku, aby sprawdzić, którzy użytkownicy należą do grupy sudo,
-- użyto `grep -E sudo|adm|docker etc/group`, aby sprawdzić użytkowników należących do uprzywilejowanych grup,
+- użyto `grep -E sudo|adm|docker /etc/group`, aby sprawdzić użytkowników należących do uprzywilejowanych grup,
 - celem powyższych działań było upewnienie się, że żaden nieautoryzowany użytkownik nie uzyskał dostępu,
 - utworzono katalog na skrypty i ustawiono jego uprawnienia wyłącznie dla właściciela,
 - stworzono skrypt wyświetlający wszystkich użytkowników z /etc/passwd oraz listę grup, do których należą, 
@@ -54,11 +54,11 @@ Grupy wpływają na prawa plików i dostęp do urządzeń / logów / secketów, 
 - Jeśli grupa systemowa nie zawiera żadnego użytkownika, jest to normalne i można zignorować,
 - jeśli grupa systemowa zawiera użytkownika interaktywnego, należy sprawdzić, czy powinien mieć do niej dostęp, szczególnie w grupach sudo, adm, docker,
 - grupy użytkowników interaktywnych należy zawsze dokładnie sprawdzić, aby upewnić się, że nie ma nieautoryzowanych członków, 
-- przynależność do grupy sudo nie zawsze oznacza pełne uprawnienia systemowe - by realnie nadać te uprawnienia należy mieścić stosowny zapis w pliku /etc/sudoers,
+- przynależność do grupy sudo nie zawsze oznacza pełne uprawnienia systemowe - by realnie nadać te uprawnienia należy umieścić stosowny zapis w pliku /etc/sudoers,
 - usunięcie grupy z /etc/group nie usuwa jej GID z plików i procesów,
 - zmieniając GID grupy (bez synchronizacji z /etc/passwd), należy zmienić GID w /etc/passwd oraz właścicielstwa plików (chown / chgrp rekurencyjnie),
-- jeśli użytkownikowi zostanie zmieniony primary GID na numer GID grupy sudo, to zawsze stanowi to czerwoną flagę, ponieważ użytkownik w takim przypadki dzieli przestrzeń wspólną z uprzywilejowanymi użytkownikami, a w przypadki nieautoryzowanego użytkownika może to stanowić potencjalne zagrożenie,
-- zasada spójności - każda zmiana GID grupy primary wymaga synchronizacji w /etc/group, /etc/passwd oraz ewentualnej aktualizacji właścielstw plików (chown / chgrp),
+- jeśli użytkownikowi zostanie zmieniony primary GID na numer GID grupy sudo, to zawsze stanowi to czerwoną flagę, ponieważ użytkownik w takim przypadku dzieli przestrzeń wspólną z uprzywilejowanymi użytkownikami, a w przypadku nieautoryzowanego użytkownika może to stanowić potencjalne zagrożenie,
+- zasada spójności - każda zmiana GID grupy primary wymaga synchronizacji w /etc/group, /etc/passwd oraz ewentualnej aktualizacji właścicielstw plików (chown / chgrp),
 - Duplikacja numeru GID (co normalnie nie powinno być możliwe przy użyciu `groupadd`, ale może wystąpić przy ręcznej edycji pliku) może prowadzić do niezamierzonego rozszerzenia uprawnień. Numer GID jest dla kernela jedynym identyfikatorem grupy, nazwa nie ma znaczenia przy kontroli dostępu. 
 - warto rozsądnie przydzielać uprawnienia w pliku /etc/sudoers, tj. nie nadawać uprawnień zbiorczo dla całej grupy. Bezpieczniejszą opcją jest tworzyć w katalogu /etc/sudoers.d/ osobne pliki z indywidualnymi uprawnieniami dla każdego użytkownika - ogranicz to eskalację uprawnień przez przypadkowe lub nieuprawnione dodanie kogoś do grupy. 
 
@@ -66,7 +66,7 @@ Grupy wpływają na prawa plików i dostęp do urządzeń / logów / secketów, 
 
 ### Przypadek 1   
 
-Stan sytemu:  
+Stan systemu:  
 	/etc/group:    
 		sudo:x:27:  
 	/etc/passwd:  
@@ -76,7 +76,7 @@ Stan sytemu:
 
 Analiza:  
 - anna jest użytkownikiem, którego primary group to grupa sudo z GID 27,
-- procesy użytkownika anna działają z GID 27, a więc grupy sudo. Kernel nie rozróżnia nazw grup, widzi jedynie GID, więc procesy anny mogą dziedziczyć uprawnienia grupy (np. zapis w katalogach grupy sudo). Zachodzi więc ryzyko, że anna może tworzyć i modyfikować pliki w przestrzeni współdzielonej przez grupę, mimo, że nie widać jej w grupie sudo w /etc/group,
+- procesy użytkownika anna działają z GID 27, a więc grupy sudo. Kernel identyfikuje grupy wyłącznie na podstawie GID, anie nazwy. W rezultacie procesy użytkownika anna działają z GID 27, co może pozwalać na dostęp do zasobów należących do grupy sudo.
 - zgodnie z ustawieniami w pliku /etc/sudoers, anna ma jako członek grupy sudo pełne uprawnienia systemowe.   
 
 Sugerowane działania: 
@@ -91,7 +91,7 @@ Stan systemu:
 		dev:x:1050:  
 		backup:x:1050:  
 	/etc/passwd:   
-		marek:s:1103:1050:Marek:/home/marek:/bin/bash  
+		marek:x:1103:1050:Marek:/home/marek:/bin/bash  
 	plik:  
 		-rwx-rwx--- 1 root backup script.sh  
 
@@ -113,12 +113,12 @@ Sugerowane działania:
 - zaktualizować wszystkie pliki należące do starego GID dev za pomocą polecenia: 
 	- `sudo find / -group 1050 -exec chgrp -h dev {} \;`  
 	lub
-	- `sudo find / group 1050 -exec chown :dev {}\;`,  
+	- `sudo find / -group 1050 -exec chown :dev {}\;`,  
 - skontrolować uprawienia w sudoers.   
 
 ## Przypadek 3 
 
-Była sobie grupa:  
+W systemie istniała grupa:  
 	audit:x:1200:  
 została usunięta z pliku /etc/group, ale:  
 	w /etc/passwd jeden użytkownik nadal ma GID 1200 jako primary,  
@@ -129,9 +129,9 @@ Analiza:
 - prawa nadal działają bo kernel widzi numer, który został w passwd, 
 - użytkownik będzie mógł odczytać plik raport.log, 
 - prawa plików nadal będą działać dla użytkownika, który ma GID 1200 jako primary,
-- nie działają uprawnienia dla grupy określone w pliku /etc/sudoers, ponieważ w zapisie ujęta jest nazwa grupy a nie GID. Nie da się więc zidentyfikować grupy na podstawie /etc/group/.    
+- wpis w /etc/sudoers odwołujący się do nazwy grupy przestaje działać, ponieważ nazwa grupy nie istnieje już w /etc/group.     
 
 Sugerowane działania:    
 - przywrócić wpis w pliku /etc/group w takiej formie jak przed jego usunięciem, za pomocą polecenia: `sudo groupadd -g 1200 audit`,
-- sprawdzić właścicielstwo plików za pomocą polecenia:  `sudo find / -grup 1200` oraz jeśli to konieczne także za pomocą polecenia `chgrp audit <plik>`,
+- sprawdzić właścicielstwo plików za pomocą polecenia:  `sudo find / -group 1200` oraz jeśli to konieczne także za pomocą polecenia `chgrp audit <plik>`,
 - alternatywnie zmienić GID w /etc/passwd na istniejącą grupę, ale to wymaga przesunięcia właścicielstw wszystkich plików z GID 1200.
