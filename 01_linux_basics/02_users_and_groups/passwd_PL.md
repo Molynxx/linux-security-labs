@@ -7,7 +7,7 @@ Celem tego laboratorium było zapoznanie się z zawartością pliku passwd oraz 
 Plik `/etc/passwd` to plik tekstowy (tzw. flat file), zawierający informacje o wszystkich użytkownikach systemu Linux. W nowoczesnych systemach plik ten nie przechowuje haseł, a zamiast hashy haseł występuje tutaj marker `x` (jeśli hasło zostało ustawione dla konta). Hash hasła jest zapisywany w pliku `/etc/shadow`.  Plik passwd jest używany przez: 
 - system logowania, 
 - procesy identyfikujące użytkownika (UID),
-- polecenia takie jak id, ls, ps, 
+- polecenia takie jak `id`, `ls`, `ps`, 
 - usługi systemowe.
 Uprawnienia pliku muszą być ustawione tak, żeby był on odczytywalny dla wszystkich (-rw-r--r--), czyli root może zapisywać, wszyscy inni czytać. Powodem takich uprawnień jest to, że system musi być w stanie:
 - przetłumaczyć UID na nazwę użytkownika, 
@@ -39,7 +39,7 @@ Format:
 	- Pełne uprawnienia systemowe, 
 - użytkownicy systemowi
 	- UID <1000
-	- często shell `usr/sbin/nologin` lub `/bin/false`
+	- często shell `/usr/sbin/nologin` lub `/bin/false`
 	Służą do uruchamiania usług (np. www-data, postgres).
 - użytkownicy interaktywni
 	- UID >=1000
@@ -53,7 +53,7 @@ sprawdzono ostatnie logowania użytkowników za pomocą polecenia `last`.
 ## Obserwacje 
 - występują trzy rodzaje użytkowników:
 	- root - konto administracyjne z dostępem interaktywnym,
-	- użytkownicy systemowi UID < 1000, powłoka `/usr/sbin/nologin` lib `/bin/false`, zakresy UID mogą się różnić w zależności od dystrybucji i konfiguracji systemu,
+	- użytkownicy systemowi UID < 1000, powłoka `/usr/sbin/nologin` lub `/bin/false`, zakresy UID mogą się różnić w zależności od dystrybucji i konfiguracji systemu,
 	- użytkownicy interaktywni - UID >= 1000, powłoka `/bin/bash`, `/bin/zsh` lub /bin/sh, katalog domowy w `/home`,
 - niektóre konta systemowe mogą mieć interaktywny shell (np. postgres) - to są wyjątki. 
 
@@ -66,7 +66,7 @@ sprawdzono ostatnie logowania użytkowników za pomocą polecenia `last`.
 - użytkownicy z UID >= 1000 zwykle mają powłokę interaktywną i katalog domowy, każde odstępstwo wymaga uwagi,
 - UID 0 oznacza konto root - obecność dodatkowych kont z UID 0 jest bardzo niebezpieczne i wymaga natychmiastowej weryfikacji,
 - plik passwd jest wrażliwy na enumerację (zbieranie informacji o użytkownikach), ponieważ musi być world-readable. Dla atakującego to istotne, bo nie da się zaatakować nieistniejącego konta, a z tego pliku można wyczytać wiele informacji. 
-- należy monitorować (auditd) ten plik pod kątem wprowadzania zmian, zweryfikować jakie dane zostały wprowadzone, jakie zostały zmienione oraz kiedy i kto przeprowadził modyfikację. W przypadki gdy atakujący dostanie się na konto z uprawnieniami root może:
+- należy monitorować (auditd) ten plik pod kątem wprowadzania zmian, zweryfikować jakie dane zostały wprowadzone, jakie zostały zmienione oraz kiedy i kto przeprowadził modyfikację. W przypadku gdy atakujący dostanie się na konto z uprawnieniami root może:
 	- dopisać użytkownika z uprawnieniami root,
 	- dodać powłokę interaktywną do jakiejś usługi,
 	- zmienić UID istniejącego konta użytkownika na 0.
@@ -92,23 +92,23 @@ Kontekst:
 	system działa od kilku lat  
 
 Analiza:   
-Pierwszy i trzeci wpis jest neutralny, z kontekstu wynika, że system ten działa w tym ustawieniu od kilku lat. Są jednak tutaj zagrożenia:
+Pierwszy i trzeci wpis jest neutralny, z kontekstu wynika, że system ten działa w tym ustawieniu od kilku lat. Zidentyfikowane zagrożenia:
 - obecność dodatkowego konta z UID 0 zwiększa powierzchnię ataku,
 - konto z UID 0 posiada pełne uprawnienia systemowe, niezależnie od nazwy użytkownika,
 - ponadto konto jest współdzielone, więc trudniej dopasować do odpowiedzialności danej osoby, 
 - bezpieczniejszą formą jest stworzenie grupy użytkowników z uprawnieniami sudo na potrzeby zespołu IT,
-- w przypadki braku dokumentacji lub kontroli może stanowić mechanizm trwałego dostępu (persistence).  
+- w przypadku braku dokumentacji lub kontroli może stanowić mechanizm trwałego dostępu (persistence).  
 
 Sugerowane działania:  
 - przeprowadzić audyt osób z zespołu IT (czy każda z tych osób w istocie potrzebuje pełnych uprawnień systemowych),
 - weryfikacja polityki dostępu zespołu IT,
 - rozważenie użycia kont sudo zamiast konta admin z UID 0,
-- jeśli jednak postanowiono korzystać z konta admin w takiej formie (niezalecanie), należy monitorować logowania, użycie sesji oraz modyfikację systemowe wykonane z tego konta (np. przez auditd lub SIEM)
+- jeśli jednak postanowiono korzystać z konta admin w takiej formie (niezalecane), należy monitorować logowania, użycie sesji oraz modyfikację systemowe wykonane z tego konta (np. przez auditd lub SIEM)
 
 ### Przypadek 2 
 
 Fragment passwd:  
-	www-data:s:33:33:www-data:/var/www:/bin/bash  
+	www-data:x:33:33:www-data:/var/www:/bin/bash  
 	deploy:x:1002:1002:Deployment User:/home/deploy:/bin/bash  
 
 Kontekst:   
@@ -117,7 +117,7 @@ Kontekst:
 	deploy służy do CI/CD   
 
 Dodatkowe informacje:   
-KOnto deploy to konto techniczne. Jest używane automatycznie przez system wdrożeniowy, a nie przez człowieka, do normalnej pracy.   
+Konto deploy to konto techniczne. Jest używane automatycznie przez system wdrożeniowy, a nie przez człowieka, do normalnej pracy.   
 
 Analiza:  
 - konto systemowe www-data nie powinno posiadać interaktywnej powłoki, jeśli nie ma takiej potrzeby operacyjnej,
@@ -141,8 +141,8 @@ Kontekst:
 	 brak innych alertów  
 
 Analiza:  
-- zmiana powłoki usługi odpowiedzialnej za logowanie darzeń z `/usr/sbin/nologin` na `.bin/bash` zawsze budzi niepokój i wymaga natychmiastowego sprawdzenia,
-- konta systemowe nie powinny mieć dostępu do interaktywnej powłoki ani katalogu domowego w postaci `/home/nazwa_usługi`, mogą mieć katalog techniczny ale on zwykle znajduje się w katalogu `/ver/` lub `/srv`,
+- zmiana powłoki usługi odpowiedzialnej za logowanie zdarzeń z `/usr/sbin/nologin` na `/bin/bash` zawsze budzi niepokój i wymaga natychmiastowego sprawdzenia,
+- konta systemowe nie powinny mieć dostępu do interaktywnej powłoki ani katalogu domowego w postaci `/home/nazwa_usługi`, mogą mieć katalog techniczny ale on zwykle znajduje się w katalogu `/var/` lub `/srv`,
 Wpis ten sugeruje konto interaktywne, jednak to jest konto systemowe, któremu dodano katalog domowy i interaktywną powłokę. Może to oznaczać potencjalne naruszenie bezpieczeństwa lub uzyskanie nieautoryzowanego dostępu.   
 
 Sugerowane działania:  
@@ -151,7 +151,7 @@ Sugerowane działania:
 - historia zmian: sprawdzić historię zmian w `/etc/passwd `, szczególnie powłoki i nowe konta,
 - grupy: sprawdzić przynależności do grup użytkownika, 
 - sudo: sprawdzić uprawnienia sudo `sudo -l -U syslog` oraz wpisy w `/etc/sudoers` i `/etc/sudoers.d`,
-- audyt: jeśli konto nie było udokumentowane ani autoryzowane, jeśli posiada uprawnienia sudo należy niezwłocznie przywrócić prawidłowy katalog techniczny oraz mienić powłokę na `/usr/sbin/nologin`,
+- audyt: jeśli konto nie było udokumentowane ani autoryzowane, jeśli posiada uprawnienia sudo należy niezwłocznie przywrócić prawidłowy katalog techniczny oraz zmienić powłokę na `/usr/sbin/nologin`,
 - kontrola zmian: przejrzeć pliki `/etc/passwd`, `/etc/sudoers`, `/etc/shadow` pod kątem podobnych zmian (zmiana powłoki na innych kontach, dodanie użytkowników),
 - PAM: sprawdzić zmiany w plikach PAM, które definiują polityki dostępu,
 - reset haseł: jeśli istnieje podejrzenie wycieku lub nieautoryzowanych zmian, należy zresetować hasła wszystkich kont krytycznych, aby ograniczyć ryzyko utraty kontroli nad systemem.   
