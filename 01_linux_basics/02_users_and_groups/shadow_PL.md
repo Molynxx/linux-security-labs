@@ -22,7 +22,7 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem `:`
 		- * brak możliwości logowania hasłem,
 		- puste pole - brak hasła, krytyczne ryzyko,
 	- użytkownicy interaktywni - posiadają hash hasła,
-	- root - zwykle posiada hash hasła, blokada `!` występuje tylko w specyficznych konfiguracjach, np. systemy z wyłączonym logowaniem root,
+	- root - zazwyczaj posiada hash hasła, blokada `!` występuje tylko w specyficznych konfiguracjach, np. systemy z wyłączonym logowaniem root,
 	Aby sprawdzić na podstawie UID, które konto jest systemowe, a które interaktywne trzeba skorelować działania z plikiem `/etc/passwd`.
 
 
@@ -35,14 +35,14 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem `:`
 	- jaki jest użyty algorytm hashujący,
 - Brak hasła lub ustawienie zbyt długiego maksymalnego okresu hasła (max days)może stanowić ryzyko bezpieczeństwa,
 - Aby sprawdzić szczegóły konta pod kątem ważności hasła, można użyć polecenia: chage -l <nazwa_użytkownika>, 
-- słaby algorytm hashujący może być podatny na brute force, najlepszym wyborem są algorytmy yescrypt i bcrypt. To wolne algorytmy, specjalnie zaprojektowane do przechowywania haseł i są odporne na ataki brute force offilne dzięki swojej kosztowności obliczeniowej. Algorytm MD5 zawsze powinien zaalarmować SOC/IR.
+- słaby algorytm hashujący może być podatny na brute force, najlepszym wyborem są algorytmy yescrypt i bcrypt. To wolne algorytmy, specjalnie zaprojektowane do przechowywania haseł i są odporne na ataki brute force offline dzięki swojej kosztowności obliczeniowej. Algorytm MD5 zawsze powinien zaalarmować SOC/IR.
 
 ## Potencjalne zagrożenia
 - Konta systemowe z aktywnym hashem zamiast blokady (!, !!, *) wymaga weryfikacji przeznaczenia i uprawnień. Należy sprawdzić w pliku `/etc/passwd` czy konto ma dostęp do `/bin/bash`. To nie musi oznaczać ataku, możliwe scenariusze:
 	- konto serwisowe,
 	- konto aplikacyjne,
 	- migracja systemu,
-	- konfiguracja legacy (odziedziczone /stare/ historyczne rozwiązanie).
+	- konfiguracja legacy (odziedziczone, stare, historyczne rozwiązanie).
 	IR zawsze bada kontekst:
 	- kto stworzył konto,
 	- kiedy,
@@ -65,14 +65,14 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem `:`
 ## Analiza wpisów w pliku `/etc/shadow` (Case Study)
 
 Fragment `/etc/shadow`:  
-	admin:$6$KlmNopQ...:17000:0:90:70:::  
-	backup:$6UvWxYz12...:19600:0:99999:7:::  
+	admin:$6$KlmNopQ...:17000:0:90:7:::  
+	backup:$6$UvWxYz12...:19600:0:99999:7:::  
 	www-data:*:19500:0:99999:7:::  
 	contractor:$6$GhJLeI36G38...:19500:10:30:19690::  
 
 Analiza:  
 - admin - brak realnej rotacji hasła (lastchg sprzed lat),
-	- możliwe uwierzytelnienie poza hasłem (np. SSH key),
+	- możliwe uwierzytelnianie poza hasłem (np. SSH key),
 	- potencjalne 'stale account',
 	- wymaga weryfikacji aktywności (logi, SSH, sudo),
 - backup - konto systemowe z hashem hasła (nietypowe) -> wymaga weryfikacji przeznaczenia,
@@ -80,6 +80,6 @@ Analiza:
 - www-data - poprawne ustawienia.   
 
 Sugerowane działania:   
-- konto admin - wskazany przegląd pod kątem zasadności jego dalszego utrzymanie. Jeśli nadal jest wymagane, lecz nie ma potrzeby logowania za pomocą hasła (np. wykorzystywane wyłącznie z kluczem SSH lub przez procesy systemowe), należy rozważyć zablokowanie możliwości logowania hasłem `passwd -l`, co zmniejszy powierzchnię ataku,
+- konto admin - wskazany przegląd pod kątem zasadności jego dalszego utrzymania. Jeśli nadal jest wymagane, lecz nie ma potrzeby logowania za pomocą hasła (np. wykorzystywane wyłącznie z kluczem SSH lub przez procesy systemowe), należy rozważyć zablokowanie możliwości logowania hasłem `passwd -l`, co zmniejszy powierzchnię ataku,
 - konto backup - ustalić, czy konto jest przeznaczone do logowania interaktywnego. Jeśli nie, można rozważyć blokadę hasła, 
-- konto contractor- dostosować wartość inactive do realnych potrzeb (np. kilkadziesiąt dni), aby konto nie pozostawało aktywne przez nieproporcjonalnie długi okres po wygaśnięciu hasła. 
+- konto contractor - dostosować wartość inactive do realnych potrzeb (np. kilkadziesiąt dni), aby konto nie pozostawało aktywne przez nieproporcjonalnie długi okres po wygaśnięciu hasła. 
