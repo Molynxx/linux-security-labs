@@ -1,41 +1,24 @@
-## /etc/ssh
+# /etc/ssh
 
-### Czym jest /etc/ssh
-Jest to katalog przechowujący pliki konfiguracyjne dla usługi SSH (Secure Shell), służącej do zdalnego logowania do systemu. Główny plik konfiguracyjny serwera SSH znajduje się w ścieżce:  /etc/ssh/sshd_config. W pliku można zdefiniować m.in.:
-- sposób łączenia się do systemów zdalnego,
-- port i adresy nasłuchu,
-- metody uwierzytelniania,
-- uprawnienia użytkowników i grup.
-Linie rozpoczynające się znakiem # są komentarzami. Zawierają one informacje pomocnicze oraz przykładowe opcje, które nie są aktywne, dopóki nie zostaną odkomentowane lub nadpisane. Odkomentowanie lub dodanie opcji powoduje zastąpienie wartości domyślnej. 
-Dobrą praktyką administracyjną jest dodawanie własnych ustawień na końcu pliku, zamiast edytowania istniejących komentarzy - ułatwia to audyt i analizę zmian.
-Warto podkreślić, że plik sshd_config nie pokazuje domyślnych ani aktualnie obowiązujących ustawień SSH. Aby sprawdzić rzeczywistą (efektywną) konfigurację, należy użyć polecenia: sudo sshd -T. POlecenie to wyświetla efektywną konfigurację SSH, czyli wartości domyślne połączone z tym, co zostało nadpisane w plikach konfiguracyjnych. 
+## Cel laboratorium 
+Celem tego laboratorium było zaznajomienie się z mechanizmami zdalnego logowania, konfiguracji SSH i niebezpieczeństw z tym związanych.
 
-### Wykonane kroki
-- Przejrzano plik /etc/ssh/sshd_config,
-- Sprawdzono efektywną konfigurację SSH za pomocą polecenia sudo sshd -T,
-- Za pomocą polecenia sudo sshd -T | grep "słowo kluczowe" sprawdzono konfigurację:
-	- port,
-	- ListenAddress,
-	- AddressFamily,
-	- PermitRootLogin,
-	- PasswordAuthentication,
-	- PubKeyAuthentication,
-	- AllowUsers,
-	- DenyUsers,
-	- AllowGroups,
-	- DenyGroups, 
-	- MaxAuthTries,
-	- UsePam.
-- Sprawdzono zawartość katalogu /etc/security/, w którym nie znaleziono pliku pwquality.conf,
-- Zainstalowano pakiet libpam-pwquality za pomocą polecenia sudo apt install,
-- Sprawdzono plik /etc/pam.d/common-password,
-- Sprawdzono status usługi SSH za pomocą polecenia sudo systemctl status ssh,
-- Włączono usługę SSH poleceniem sudo sytemctl start ssh,
-- Zweryfikowano nasłuch usługi za pomocą polecenia sudo ss -tulpn | grep ssh,
-- Wyłączono usługę SSH poleceniem sudo systemctl stop ssh.
+## Czym jest /etc/ssh
+Jest to katalog przechowujący pliki konfiguracyjne dla usługi SSH (Secure Shell), służącej do zdalnego logowania do systemu. Główny plik konfiguracyjny serwera SSH znajduje się w ścieżce:`/etc/ssh/sshd_config` i zawiera m.in. metody uwierzytelniania, dostęp użytkowników, parametry połączenia.
+Aby sprawdzić rzeczywistą (efektywną) konfigurację, należy użyć polecenia: sudo sshd -T. Plik może zawierać Match Block (warunkowe reguły) - reguły te nadpisują wcześniejsze ustawienia po spełnieniu warunków. Przykład:
+	PasswordAuthentication yes
+		Match User admin
+			PasswordAuthentication no
+Opcja LogLevel określa szczegółowość logów (INFO, VERBOSE, DEBUG).
 
-### Obserwacje
-- W pliku /etc/ssh/sshd_config wszystkie linie są zakomentowane, co oznacza, że nie wprowadzono niestandardowych ustawień, a SSH działa na konfiguracji domyślnej,
+## Wykonane kroki
+- analiza konfiguracji SSH (sshd_config, sshd -T),
+- weryfikacja statusu usługi (systemctl),
+- sprawdzenie nasłuchu (ss -tulpn).
+
+## Obserwacje
+Obserwacje dotyczą domyślnej konfiguracji SSH w Kali Linux
+- W pliku `/etc/ssh/sshd_config` nie zawiera aktywnych niestandardowych ustawień - serwer działa na konfiguracji domyślnej OpenSSH.
 - Usługa SSH była domyślnie wyłączona w systemie Kali Linux,
 - Po sprawdzeniu efektywnej konfiguracji poleceniem sudo sshd -T stwierdzono, że:
 	- port ustawiony jest na 22, 
@@ -48,22 +31,125 @@ Warto podkreślić, że plik sshd_config nie pokazuje domyślnych ani aktualnie 
 	- AllowGropups oraz DenyGroups nie są skonfigurowane, 
 	- MaxAuthTries ustawione jest na 6,
 	- UsePam ustawione jest na yes.
-- Pomimo ustawienia MaxAuthTries na wartość 6, po trzech nieudanych próbach logowania sesja SSH została przerwana, co wskazuje na działanie  polityk PAM.
+- Pomimo ustawienia MaxAuthTries na wartość 6, po trzech nieudanych próbach logowania sesja SSH została przerwana, może to wynikać z mechanizmów PAM (np. faillock) - wymaga potwierdzenia w logach. 
 
-### Wnioski bezpieczeństwa
-- Domyślny port 22 jest powszechnie znany i często skanowany. Zmiana portu na niestandardowy (niekolidujący z innymi usługami) może ograniczyć automatyczne ataki typu brute force,
-- Nasłuchiwanie na wszystkich adresach IPv6 ([::}) nie zawsze jest konieczne. Jeśli nIPv6 nie jest używane, warto rozważyć ustawienie AddressFamily na inet, aby ograniczyć nasłuch wyłącznie do IPv4. 
-- Nasłuchiwanie na 0.0.0.0 jest poprawne funkcjonalnie, jednak z punktu widzenia bezpieczeństwa można ograniczyć powierzchnię ataku poprzez przypisanie SSH do konkretnego interfejsu lub adresu IP,
-- Ustawienie PermitRootLogin prohibit-password jest dobrą praktyką uniemożliwia logowanie roota za pomocą hasła, co znacząco ogranicza ryzyko brute force,
-- PasswordAuthentication yes stanowi potencjalne zagrożenie bezpieczeństwa, bezpieczniejszym rozwiązaniem jest wyłączenie logowania hasłem i korzystanie wyłącznie z kluczy SSH.
+## Wnioski bezpieczeństwa
+Z perspektywy SOC w środowisku produkcyjnym powyższe ustawienia wymagałyby dodatkowej konfiguracji w celu ograniczenia ryzyka.
+- domyślny port 22 jest powszechnie znany i często skanowany. Zalecana zmiana portu na niestandardowy,
+- nasłuchiwanie na wszystkich adresach IPv6 ([::}) jeśli IPv6 nie jest używane, ograniczyć nasłuch wyłącznie do IPv4,  
+- nasłuch na 0.0.0.0 zwiększa powierzchnię ataku - zalecane ograniczenie do konkretnego adresu IP/interfejsu,
+- PermitRootLogin prohibit-password ogranicza ryzyko brute force,
+- PasswordAuthentication yes zwiększa ryzyko brute force,
 - PubKeyAuthentication yes jest ustawieniem bezpiecznym i zalecanym, 
-- PermitEmptyPassword no jest najlepszym możliwym ustawieniem - logowanie bez hasła znacząco zwiększa powierzchnię ataku, 
-- Brak konfiguracji AllowUsers / DenyUsers oraz AllowGroups / DenyGroups oznacza brak ograniczeń dostępu. Najbezpieczniejszym podejściem jest jawne wskazanie użytkowników lub grup, które mogą korzystać z SSH, pamiętając, że reguły deny* mają pierwszeństwo,
-- MaxAuthTries ustawione na 6 może ułatwić brute force, zalecaną wartością jest 3, z uwzględnieniem możliwości pomyłki użytkownika,
-- UsePam yes, oznacza że SSH korzysta z mechanizmów PAM. SSH korzysta z PAM, dlatego ograniczenia logowania mogą wynikać z polityk PAM, a nie tylko z ustawień SSH. W tym przypadki to właśnie PAM ograniczył liczbę prób logowania do 3, mimo wyższej wartości w konfiguracji SSH, co należy uznać za poprawne działanie mechanizmów bezpieczeństwa.
+- PermitEmptyPassword no jest najlepszym możliwym ustawieniem,
+- Brak konfiguracji AllowUsers / DenyUsers oraz AllowGroups / DenyGroups oznacza brak ograniczeń dostępu, 
+- MaxAuthTries ustawione na 6 może ułatwić brute force, zalecaną wartością jest 3, z
+- UsePam yes, oznacza że SSH korzysta z mechanizmów PAM. 
 
-### Kontekst SOC
-Zmiany w konfiguracji SSH, uruchamianie lub zatrzymywanie usługi SSH oraz wielokrotnie nieudane próby logowania są zdarzeniami istotnymi z punktu widzenie SOC. Powinny one być monitorowane i korelowane z logami systemowymi (journalctl, auth.log) oraz alertami dotyczącymi brute force, nieautoryzowanego dostępu lub nieautoryzowanych zmian konfiguracyjnych.
-- Należy monitorować auth.log i jouralctl pod kątem prób brute force oraz nieautoryzowanych zmian w konfiguracji SSH,
-- Warto regularnie sprawdzać efektywną konfigurację SSH (sudo ssh -T) po każdej zmianie plików konfiguracyjnych,
+## Najczęstsze misconfigi SSH
+- PermitRootLogin yes - zawsze źle na publicznym serwerze,
+- PasswordAuthentication yes - umożliwia brute force, 
+- brak AllowUsers - każdy może próbować loginów, 
+- bark limitów /fail2ban - brak automatycznej obrony,
+- PermitEmptyPassword yes - ustawienie pozwalające na pominięcie hasła.
 
+## Kontekst SOC
+Zdarzenia związane s SSH takie jak zmiany konfiguracji, uruchamianie usługi oraz wielokrotne nieudane próby logowania, powinny być monitorowane w kontekście bezpieczeństwa. 
+- monitorowanie logów (auth.log, journalctl) pod kątem prób brute force oraz nieautoryzowanych zmian konfiguracji,
+- weryfikacja efektywnej konfiguracji SSH (sudo sshd -T) po wprowadzeniu zmian.
+
+## Analiza konfiguracji SSH (Case Study)
+
+### Case Study 1
+
+Przykład konfiguracji SSH:   
+	Port 22  
+	ListenAddress 0.0.0.0  
+	PermitRootLogin yes  
+	PasseordAuthentication yes  
+	PubKeyAuthentication no  
+	AllowUsers alice bob  
+	MaxAuthTries 10  
+	ClientAliveInterval 300  
+	ClientAliveCoutMax 3  
+
+Analiza:  
+- ustawiony port jest dobrze znany atakującym, często skanowany,
+- nasłuch na wszystkich interfejsach UPv$ (0.0.0.0). Jeśli serwer posiada wiele interfejsów sieciowych ograniczenie nasłuchu do konkretnego zakresu IP może zmniejszyć powierzchnię ataku.
+- PermitRootLogin yes to zawsze niebezpieczny wybór, zwłaszcza na serwerach publicznych,
+- PasseordAuthentication yes - opcja pozawala użytkownikom na logowanie za pomocą hasła. W środowiskach produkcyjnych nie jest to zalecane, ponieważ zwiększa ryzyko brute force oraz wycieku lub złamania hasła, 
+- PubKeyAuthentication no, wyłączenie opcji logowania kluczem jest niebezpieczne, ponieważ wtedy pozostaje tylko opcja logowania hasłem, co nie jest najbezpieczniejszym sposobem, 
+- AllowUsers alice bob - to dobra praktyk, by ograniczać dostęp tylko dla określonej grupy użytkowników, 
+- MaxAuthTries 10 - to zbyt duża wartość, zwiększa ryzyko brute force,
+- ClientAliveInterval 300, to rozsądne ustawienie, oznacza, że serwer co 5 minut sprawdza czy klient jest nadal aktywny,
+- ClientAliveCoutMax 3, to poprawne ustawienie, ponieważ jeśli klient nie odpowie 3 razy, to biorąc pod uwagę opcję zapisaną powyżej, serwer przerwie połączenie po 15 minutach.  
+
+Sugerowane działania:
+- zmienić port na mniej oczywisty, warto używać zakresu 49152 - 65535 żeby uniknąć kolizji i zmniejszyć ryzyko skanowania, 
+- opcjonalnie, celem zwiększenia bezpieczeństwa ograniczyć nasłuch do określonego IP,
+- zmienić PermitRootLogin na `no`, zwłaszcza jeśli serwer jest publiczny,
+- zmienić autoryzację hasłem na `no` oraz autoryzację kluczem na `yes`. Klucze są znacznie bezpieczniejsze i bardziej odporne na brute force,
+- zmienić dozwoloną ilość prób logowania na 3, to dobry kompromis pomiędzy ochroną przed brute force a możliwością pomyłki przy wpisywaniu hasła przez użytkownika.
+
+### Case Study 2
+
+Konfiguracja:  
+	port 2222  
+	PermiotRootLogin prohibit-password  
+	PasswordAuthentication no  
+	PubKeyAuthentication yes  
+	AllowUser admin  
+	MaxAuthTries 6  
+
+Analiza: 
+-  port 2222 zmniejsza liczbę automatycznych skanów i prób logowania na domyślnym porcie 22, jedno nie stanowi rzeczywistego mechanizmu bezpieczeństwa,
+- AllowUsers - ustawienie dostępu tylko dla jednego kotna:
+	- zmniejsza powierzchnię ataku, 
+	- zmniejsza liczbę potencjalnych punktów kompromitacji,
+	- zmniejsza szum informacyjny w logach. 
+	Jednak są tutaj też negatywne skutki, ponieważ gdy nastąpi kompromitacja klucza lub konta admina, to atakujący ma pełny dostęp do serwer, bo nie ma żadnego innego konta kontrolnego, natomiast jeśli:
+		- klucz admina zostanie uszkodzony, niepoprawnie zostanie zdefiniowane AllowUsers, zmieni się konfiguracja SSH, to serwer jest zablokowany administracyjnie, 
+		- tego jednego konta używa kilku adminów, utrudniony jest audyt, nie wiadomo, który admin jakie procesy uruchomił. 
+		Dlatego w tym przypadki zawsze warto ustawić dostęp dla grupy adminów, dzięki czemu można uniknąć powyższych konsekwencji.
+- PermitRootLogin w tym przypadki i tak nie zadziała, ponieważ root nie znajduje się w grupie AllowUsers, więc nawet podczas logowania kluczem, zostanie najpierw sprawdzona lista użytkowników z dozwolonym dostępem. A ponieważ root tam nie ma, nie zaloguje się nawet kluczem.
+- MaxAuthTries - ustawiona wartość jest zbyt duża, może zwiększyć ryzyko brute force.  
+
+Sugerowane działania:  
+- ustawić więcej kont, celem zabezpieczenia dostępu do serwera w razie przejęcia konta, uszkodzenia konfiguracji SSH lub klucza, a także dla ułatwienia audytu,
+- zmienić opcję PermitRootLogin na `no`, ponieważ gdy jest ustawiona grupa AllowUsers, w której roota nie ma, jest ona niepotrzebne i nie ma wpływu na nic. Jednak nadal, gdyby ustawienia AllowUses się w przyszłości zmieniły, warto ta linią zabezpieczyć serwer dodatkowo,
+- zmienić MaxAuthTries na wartość 3, co zwiększy bezpieczeństwo przed brute force, ale jednocześnie uwzględnia pomyłkę w haśle przez użytkownika. Dodatkowo liczba prób logowania powinna być monitorowana w logach systemowych (np. auth.log), ponieważ duża liczba nieudanych prób może wskazywać na atak brute force. 
+
+### Case Study 3
+
+Konfiguracja:  
+	Zakładamy środowisko produkcyjne z SSH:  
+	Port 2222  
+	PermitRootLogin no  
+	PasswordAuthentication no   
+	PubKeyAuthentication yes  
+	AllowUsers admin  
+	MaxAuthTries 3   
+Celem jest monitorowanie logów auth.log lub journalctl w poszukiwaniu nieprawidłowych zachowań brute force i potencjalnych kompromitacji.  
+
+Log 1  
+mar 6 09:15:23 kali sshd [2345]: Accepted publickey for admin from 192.168.1.10 port 54321 ssh2   
+
+log 2  
+mar 6 03:42:11 kali sshd [2350]: Failed password for admin from 185.203.56.77 port 42213 ssh2  
+mar 6 03:42:11 kali sshd [2350]: Failed password for admin from 185.203.56.77 port 42213 ssh2  
+mar 6 03:42:11 kali sshd [2350]: Failed password for admin from 185.203.56.77 port 42213 ssh2  
+mar 6 03:42:11 kali sshd [2350]: Failed password for admin from 185.203.56.77 port 42213 ssh2  
+
+Log 3  
+mar 6 22:17:202 kali sshd [2367]: Accepted publickey for admin from 198.51.100.45 port 42213 ssh2: RSA SHA256:abcd1234...   
+
+Analiza:  
+- konfiguracja SSH jest ustawiona poprawnie, z wyjątkiem AllowUsers - ma tylko jednego użytkownika, co zwiększa ryzyko administracyjnego zablokowania serwera lub utraty kontroli nad serwerem,
+- log 1 - logowanie z systemu kali za pomocą klucza dla użytkownika admin, odbywa się z lokalnego adresu IP, port 54321. Tutaj nic nie wskazuje na to, że dzieje się coś złego. Wygląda na zwyczajne logowanie admina w godzinach pracy z sieci lokalnej,
+- log 2 - wiele zakończonych niepowodzeniem prób logowania do konta admin za pomocą hasła co jest zabronione w konfiguracji, logowania odbywają się późno w nocy co 4 sekundy z zewnętrznego adresu IP. Wzorzec wskazuje na zautomatyzowaną próbę brute force. Admin na pewno wie, że możliwość zalogowania zdalnie odbywa się wyłącznie za pomocą klucza, więc dlaczego miałby próbować logowania za pomocą hasła, 
+- log 3 - logowanie po 22 wieczorem powinno budzić podejrzenia, zwłaszcza jeśli to nie są godziny pracy. Teoretycznie to mógł być admin pragnący przeprowadzić jakieś prace na serwerze poza godzinami pracy, to jeszcze nie jest powód do paniki, jednak przypadek wymaga dokładnego sprawdzenia, ponieważ może to być kompromitacja klucza lub anomalne logowanie (czas + IP).   
+
+Sugerowane działania:
+- dodać jedno lub dwa konta do AllowUserws,
+- sprawdzić zabezpieczenia konfiguracji, upewnić się, że MaxAuthTries ma niską wartość, że hasło nie jest dozwolone podczas logowania, czy logowanie root jest dozwolone oraz jaka jest grupa AllowUsers,
+- sprawdzić dokładnie dane z logu 3 - czy IP jest zaufanym adresem, upewnić się czy klucz nie wyciekł, sprawdzić w logach jakie działania przeprowadził admin po zalogowaniu i jak długo trwała jego sesja, skonsultować logi z adminem, celem potwierdzenia, że rzeczywiście się logował w tym czasie. Ponadto należy sprawdzić fingerprint klucza, czy zgadza się z faktycznym. 
