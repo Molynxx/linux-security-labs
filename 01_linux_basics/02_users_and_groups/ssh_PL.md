@@ -4,7 +4,7 @@
 Celem tego laboratorium było zaznajomienie się z mechanizmami zdalnego logowania, konfiguracji SSH i niebezpieczeństw z tym związanych.
 
 ## Czym jest /etc/ssh
-Jest to katalog przechowujący pliki konfiguracyjne dla usługi SSH (Secure Shell), służącej do zdalnego logowania do systemu. Główny plik konfiguracyjny serwera SSH znajduje się w ścieżce:`/etc/ssh/sshd_config` i zawiera m.in. metody uwierzytelniania, dostęp użytkowników, parametry połączenia.
+Jest to katalog przechowujący pliki konfiguracyjne dla usługi SSH (Secure Shell), służącej do zdalnego logowania do systemu. Główny plik konfiguracyjny serwera SSH znajduje się w ścieżce: `/etc/ssh/sshd_config` i zawiera m.in. metody uwierzytelniania, dostęp użytkowników, parametry połączenia.
 Aby sprawdzić rzeczywistą (efektywną) konfigurację, należy użyć polecenia: sudo sshd -T. Plik może zawierać Match Block (warunkowe reguły) - reguły te nadpisują wcześniejsze ustawienia po spełnieniu warunków. Przykład:
 	PasswordAuthentication yes
 		Match User admin
@@ -17,20 +17,20 @@ Opcja LogLevel określa szczegółowość logów (INFO, VERBOSE, DEBUG).
 - sprawdzenie nasłuchu (ss -tulpn).
 
 ## Obserwacje
-Obserwacje dotyczą domyślnej konfiguracji SSH w Kali Linux
-- W pliku `/etc/ssh/sshd_config` nie zawiera aktywnych niestandardowych ustawień - serwer działa na konfiguracji domyślnej OpenSSH.
+Obserwacje dotyczą domyślnej konfiguracji SSH w Kali Linux.
+- W pliku `/etc/ssh/sshd_config` nie zawiera aktywnych niestandardowych ustawień - serwer działa na konfiguracji domyślnej OpenSSH,
 - Usługa SSH była domyślnie wyłączona w systemie Kali Linux,
 - Po sprawdzeniu efektywnej konfiguracji poleceniem sudo sshd -T stwierdzono, że:
-	- port ustawiony jest na 22, 
+	- Port ustawiony jest na 22, 
 	- ListenAddress ustawiony na 0.0.0.0 oraz [::], co oznacza nasłuch na wszystkich adresach IPv4 i IPv6,
-	- PermitRootLoigin ustawione jest na prohibit-password,
+	- PermitRootLogin ustawione jest na prohibit-password,
 	- PasswordAuthentication ustawiony jest na yes,
 	- PubKeyAuthentication ustawiony jest na yes,
-	- PermitEpmtyPassword ustawiony jest na no, 
+	- PermitEpmtyPasswords ustawiony jest na no, 
 	- AllowUsers oraz DenyUsers nie są skonfigurowane,
-	- AllowGropups oraz DenyGroups nie są skonfigurowane, 
+	- AllowGroups oraz DenyGroups nie są skonfigurowane, 
 	- MaxAuthTries ustawione jest na 6,
-	- UsePam ustawione jest na yes.
+	- UsePAM ustawione jest na yes,
 - Pomimo ustawienia MaxAuthTries na wartość 6, po trzech nieudanych próbach logowania sesja SSH została przerwana, może to wynikać z mechanizmów PAM (np. faillock) - wymaga potwierdzenia w logach. 
 
 ## Wnioski bezpieczeństwa
@@ -66,23 +66,23 @@ Przykład konfiguracji SSH:
 	Port 22  
 	ListenAddress 0.0.0.0  
 	PermitRootLogin yes  
-	PasseordAuthentication yes  
+	PasswordAuthentication yes  
 	PubKeyAuthentication no  
 	AllowUsers alice bob  
 	MaxAuthTries 10  
 	ClientAliveInterval 300  
-	ClientAliveCoutMax 3  
+	ClientAliveCountMax 3  
 
 Analiza:  
 - ustawiony port jest dobrze znany atakującym, często skanowany,
-- nasłuch na wszystkich interfejsach UPv$ (0.0.0.0). Jeśli serwer posiada wiele interfejsów sieciowych ograniczenie nasłuchu do konkretnego zakresu IP może zmniejszyć powierzchnię ataku.
+- nasłuch na wszystkich interfejsach IPv4(0.0.0.0). Jeśli serwer posiada wiele interfejsów sieciowych ograniczenie nasłuchu do konkretnego zakresu IP może zmniejszyć powierzchnię ataku.
 - PermitRootLogin yes to zawsze niebezpieczny wybór, zwłaszcza na serwerach publicznych,
-- PasseordAuthentication yes - opcja pozawala użytkownikom na logowanie za pomocą hasła. W środowiskach produkcyjnych nie jest to zalecane, ponieważ zwiększa ryzyko brute force oraz wycieku lub złamania hasła, 
+- PasswordAuthentication yes - opcja pozawala użytkownikom na logowanie za pomocą hasła. W środowiskach produkcyjnych nie jest to zalecane, ponieważ zwiększa ryzyko brute force oraz wycieku lub złamania hasła, 
 - PubKeyAuthentication no, wyłączenie opcji logowania kluczem jest niebezpieczne, ponieważ wtedy pozostaje tylko opcja logowania hasłem, co nie jest najbezpieczniejszym sposobem, 
-- AllowUsers alice bob - to dobra praktyk, by ograniczać dostęp tylko dla określonej grupy użytkowników, 
+- AllowUsers alice bob - to dobra praktyką, by ograniczać dostęp tylko dla określonej grupy użytkowników, 
 - MaxAuthTries 10 - to zbyt duża wartość, zwiększa ryzyko brute force,
 - ClientAliveInterval 300, to rozsądne ustawienie, oznacza, że serwer co 5 minut sprawdza czy klient jest nadal aktywny,
-- ClientAliveCoutMax 3, to poprawne ustawienie, ponieważ jeśli klient nie odpowie 3 razy, to biorąc pod uwagę opcję zapisaną powyżej, serwer przerwie połączenie po 15 minutach.  
+- ClientAliveCountMax 3, to poprawne ustawienie, ponieważ jeśli klient nie odpowie 3 razy, to biorąc pod uwagę opcję zapisaną powyżej, serwer przerwie połączenie po 15 minutach.  
 
 Sugerowane działania:
 - zmienić port na mniej oczywisty, warto używać zakresu 49152 - 65535 żeby uniknąć kolizji i zmniejszyć ryzyko skanowania, 
@@ -95,23 +95,23 @@ Sugerowane działania:
 
 Konfiguracja:  
 	port 2222  
-	PermiotRootLogin prohibit-password  
+	PermitRootLogin prohibit-password  
 	PasswordAuthentication no  
 	PubKeyAuthentication yes  
-	AllowUser admin  
+	AllowUsers admin  
 	MaxAuthTries 6  
 
 Analiza: 
 -  port 2222 zmniejsza liczbę automatycznych skanów i prób logowania na domyślnym porcie 22, jedno nie stanowi rzeczywistego mechanizmu bezpieczeństwa,
-- AllowUsers - ustawienie dostępu tylko dla jednego kotna:
+- AllowUsers - ustawienie dostępu tylko dla jednego konta:
 	- zmniejsza powierzchnię ataku, 
 	- zmniejsza liczbę potencjalnych punktów kompromitacji,
 	- zmniejsza szum informacyjny w logach. 
 	Jednak są tutaj też negatywne skutki, ponieważ gdy nastąpi kompromitacja klucza lub konta admina, to atakujący ma pełny dostęp do serwer, bo nie ma żadnego innego konta kontrolnego, natomiast jeśli:
 		- klucz admina zostanie uszkodzony, niepoprawnie zostanie zdefiniowane AllowUsers, zmieni się konfiguracja SSH, to serwer jest zablokowany administracyjnie, 
 		- tego jednego konta używa kilku adminów, utrudniony jest audyt, nie wiadomo, który admin jakie procesy uruchomił. 
-		Dlatego w tym przypadki zawsze warto ustawić dostęp dla grupy adminów, dzięki czemu można uniknąć powyższych konsekwencji.
-- PermitRootLogin w tym przypadki i tak nie zadziała, ponieważ root nie znajduje się w grupie AllowUsers, więc nawet podczas logowania kluczem, zostanie najpierw sprawdzona lista użytkowników z dozwolonym dostępem. A ponieważ root tam nie ma, nie zaloguje się nawet kluczem.
+		Dlatego w tym przypadku zawsze warto ustawić dostęp dla grupy adminów, dzięki czemu można uniknąć powyższych konsekwencji.
+- PermitRootLogin w tym przypadku i tak nie zadziała, ponieważ root nie znajduje się w grupie AllowUsers, więc nawet podczas logowania kluczem, zostanie najpierw sprawdzona lista użytkowników z dozwolonym dostępem. A ponieważ root tam nie ma, nie zaloguje się nawet kluczem.
 - MaxAuthTries - ustawiona wartość jest zbyt duża, może zwiększyć ryzyko brute force.  
 
 Sugerowane działania:  
@@ -141,7 +141,7 @@ mar 6 03:42:11 kali sshd [2350]: Failed password for admin from 185.203.56.77 po
 mar 6 03:42:11 kali sshd [2350]: Failed password for admin from 185.203.56.77 port 42213 ssh2  
 
 Log 3  
-mar 6 22:17:202 kali sshd [2367]: Accepted publickey for admin from 198.51.100.45 port 42213 ssh2: RSA SHA256:abcd1234...   
+mar 6 22:17:02 kali sshd [2367]: Accepted publickey for admin from 198.51.100.45 port 42213 ssh2: RSA SHA256:abcd1234...   
 
 Analiza:  
 - konfiguracja SSH jest ustawiona poprawnie, z wyjątkiem AllowUsers - ma tylko jednego użytkownika, co zwiększa ryzyko administracyjnego zablokowania serwera lub utraty kontroli nad serwerem,
@@ -150,6 +150,6 @@ Analiza:
 - log 3 - logowanie po 22 wieczorem powinno budzić podejrzenia, zwłaszcza jeśli to nie są godziny pracy. Teoretycznie to mógł być admin pragnący przeprowadzić jakieś prace na serwerze poza godzinami pracy, to jeszcze nie jest powód do paniki, jednak przypadek wymaga dokładnego sprawdzenia, ponieważ może to być kompromitacja klucza lub anomalne logowanie (czas + IP).   
 
 Sugerowane działania:
-- dodać jedno lub dwa konta do AllowUserws,
+- dodać jedno lub dwa konta do AllowUsers,
 - sprawdzić zabezpieczenia konfiguracji, upewnić się, że MaxAuthTries ma niską wartość, że hasło nie jest dozwolone podczas logowania, czy logowanie root jest dozwolone oraz jaka jest grupa AllowUsers,
 - sprawdzić dokładnie dane z logu 3 - czy IP jest zaufanym adresem, upewnić się czy klucz nie wyciekł, sprawdzić w logach jakie działania przeprowadził admin po zalogowaniu i jak długo trwała jego sesja, skonsultować logi z adminem, celem potwierdzenia, że rzeczywiście się logował w tym czasie. Ponadto należy sprawdzić fingerprint klucza, czy zgadza się z faktycznym. 
