@@ -5,16 +5,16 @@ Celem tego laboratorium było zapoznanie się jak działają zapisy w pliku `/et
 
 
 ## Czym jest /etc/sudoers
-Plik `/etc/sudoers` określa, które polecenia użytkownik może uruchamiać z uprawnianiami innego użytkownika (najczęściej root).
+Plik `/etc/sudoers` określa, które polecenia użytkownik może uruchamiać z uprawnieniami innego użytkownika (najczęściej root).
 
 ## Defaults
-Defaults to ustawienia sterujące zachowaniem sudo, np. reset zmiennych środowiskowych (env_reset) czy bezpieczna ścieżka (secure_path).
+Defaults to ustawienia sterujące zachowaniem polecenia sudo, np. reset zmiennych środowiskowych (env_reset) czy bezpieczna ścieżka (secure_path).
 
 ## Wykonane kroki
 - przejrzano plik `/etc/sudoers` (`sudo less`) oraz katalog `/etc/sudoers.d/` (`sudo ls`),
-- utworzono nowego użytkownika nienależącego do żaden uprzywilejowanej grupy,
-- utworzono plik w `/etc/sudoers.d/` o nazwie zgodniej z nawą użytkownika za pomocą polecenia `sudo visudo - f /etc/sudoers.d/user-apt`, 
-- nadano user uprawnienia root poleceń `apt update` i `apt upgrade`,
+- utworzono nowego użytkownika nienależącego do żadnej uprzywilejowanej grupy,
+- utworzono plik w `/etc/sudoers.d/` o nazwie zgodniej z nazwą użytkownika za pomocą polecenia `sudo visudo -f /etc/sudoers.d/user-apt`, 
+- nadano użytkownikowi uprawnienia do uruchamiania poleceń jako root `apt update` i `apt upgrade`,
 - sprawdzono dostępne polecenia `sudo -l` oraz `sudo -l -U user`.
 
 ## Obserwacje 
@@ -26,14 +26,14 @@ Defaults to ustawienia sterujące zachowaniem sudo, np. reset zmiennych środowi
 Na co trzeba zwrócić uwagę:
 - kto ma pełny dostęp - w pliku `/etc/sudoers` widać jakie prawa mają grupy root i sudo, w `/etc/group` można sprawdzić kto należy do tych grup i czy na pewno powinien tam należeć, 
 - kto ma NOPASSWD (użycie sudo bez podawania hasła),
-- czy są nietypowe wpisy w pliku `/etc/sudoers` lub nieznane pliki w katalogu `/etc/sudoers.d`,
+- czy są nietypowe wpisy w pliku `/etc/sudoers` lub nieznane pliki w katalogu `/etc/sudoers.d/`,
 - należy monitorować zmiany w pliku `/etc/sudoers` jako potencjalne zdarzenia bezpieczeństwa.
 
 ## Potencjalne zagrożenia
 - każdy użytkownik z NOPASSWD to potencjalny wektor ataku, 
 - nietypowe polecenia pozwalające na zapis do systemowych katalogów, należy sprawdzić czy są zasadne,
 - zamiast dodawać wszystkich do grupy sudo (mającej pełne uprawnienia w sudoers), lepiej umieszczać konkretnych użytkowników w plikach `/etc/sudoers.d/` nadając im tylko konieczne uprawnienia,
-- blokowanie pojedynczych poleceń w sudoers (np. .bin/bash) nie jest skutecznym mechanizmem zabezpieczeń, ponieważ może zostać łatwo pominięte (np. przez użycie innych powłok lub narzędzi umożliwiających wykonanie shell). Zalecanym podejściem jest whitelistowanie konkretnych poleceń zgodnie z zasadą least privilege.
+- blokowanie pojedynczych poleceń w sudoers (np. /bin/bash) nie jest skutecznym mechanizmem zabezpieczeń, ponieważ może zostać łatwo ominięte (np. przez użycie innych powłok lub narzędzi umożliwiających wykonanie shell). Zalecanym podejściem jest whitelistowanie konkretnych poleceń zgodnie z zasadą least privilege.
 
 ## Analiza wpisów w pliku `/etc/sudoers` (Case Study)
 
@@ -43,7 +43,7 @@ Konfiguracja:
 	user1 ALL=(root) /usr/bin/apt update, /usr/bin/apt upgrade  
 
 Sytuacja:  
-	user1 próbuje uruchomić dozwolone polecenia `apt update` oraz niedozwolone `id`, `sudo -i`  
+	user1 próbuje uruchomić dozwolone polecenie `apt update` oraz niedozwolone `id`, `sudo -i`  
 
 Analiza:  
 - dostęp do `apt update` działa zgodnie z konfiguracją,
