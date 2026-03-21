@@ -1,7 +1,7 @@
 # /etc/sudoers
 
 ## Cel laboratorium 
-Celem tego laboratorium było zapoznanie się jak działają zapisy w pliku `/etc/sudoers` oraz jaki to ma wpływ na uprawnienia użytkowników.
+Celem tego laboratorium było zapoznanie się jak działają zapisy w pliku `/etc/sudoers` oraz jaki mają wpływ na uprawnienia użytkowników.
 
 
 ## Czym jest /etc/sudoers
@@ -13,9 +13,9 @@ Defaults to ustawienia sterujące zachowaniem polecenia sudo, np. reset zmiennyc
 ## Wykonane kroki
 - przejrzano plik `/etc/sudoers` (`sudo less`) oraz katalog `/etc/sudoers.d/` (`sudo ls`),
 - utworzono nowego użytkownika nienależącego do żadnej uprzywilejowanej grupy,
-- utworzono plik w `/etc/sudoers.d/` o nazwie zgodniej z nazwą użytkownika za pomocą polecenia `sudo visudo -f /etc/sudoers.d/user-apt`, 
-- nadano użytkownikowi uprawnienia do uruchamiania poleceń jako root `apt update` i `apt upgrade`,
-- sprawdzono dostępne polecenia `sudo -l` oraz `sudo -l -U user`.
+- utworzono plik w `/etc/sudoers.d/` o nazwie zgodnej z nazwą użytkownika za pomocą polecenia `sudo visudo -f /etc/sudoers.d/user-apt`, 
+- nadano użytkownikowi uprawnienia do uruchamiania poleceń jako root: `apt update` i `apt upgrade`,
+- sprawdzono dostępne polecenia za pomocą `sudo -l` oraz `sudo -l -U user`.
 
 ## Obserwacje 
 - UID 0 ma pełne uprawnienia bez użycia sudo, natomiast użytkownicy z grupy sudo uzyskują pełne uprawnienia za pomocą polecenia `sudo`, zgodnie z konfiguracją pliku `/etc/sudoers`,
@@ -24,16 +24,16 @@ Defaults to ustawienia sterujące zachowaniem polecenia sudo, np. reset zmiennyc
 
 ## Wnioski bezpieczeństwa
 Na co trzeba zwrócić uwagę:
-- kto ma pełny dostęp - w pliku `/etc/sudoers` widać jakie prawa mają grupy root i sudo, w `/etc/group` można sprawdzić kto należy do tych grup i czy na pewno powinien tam należeć, 
+- kto ma pełny dostęp - w pliku `/etc/sudoers` widać, jakie prawa mają grupy root i sudo; w `/etc/group` można sprawdzić kto należy do tych grup i czy na pewno powinien tam należeć, 
 - kto ma NOPASSWD (użycie sudo bez podawania hasła),
 - czy są nietypowe wpisy w pliku `/etc/sudoers` lub nieznane pliki w katalogu `/etc/sudoers.d/`,
 - należy monitorować zmiany w pliku `/etc/sudoers` jako potencjalne zdarzenia bezpieczeństwa.
 
 ## Potencjalne zagrożenia
 - każdy użytkownik z NOPASSWD to potencjalny wektor ataku, 
-- nietypowe polecenia pozwalające na zapis do systemowych katalogów, należy sprawdzić czy są zasadne,
+- nietypowe polecenia pozwalające na zapis do systemowych katalogów - należy sprawdzić, czy są zasadne,
 - zamiast dodawać wszystkich do grupy sudo (mającej pełne uprawnienia w sudoers), lepiej umieszczać konkretnych użytkowników w plikach `/etc/sudoers.d/` nadając im tylko konieczne uprawnienia,
-- blokowanie pojedynczych poleceń w sudoers (np. /bin/bash) nie jest skutecznym mechanizmem zabezpieczeń, ponieważ może zostać łatwo ominięte (np. przez użycie innych powłok lub narzędzi umożliwiających wykonanie shell). Zalecanym podejściem jest whitelistowanie konkretnych poleceń zgodnie z zasadą least privilege.
+- blokowanie pojedynczych poleceń w sudoers (np. `/bin/bash`) nie jest skutecznym mechanizmem zabezpieczeń, ponieważ może zostać łatwo ominięte (np. przez użycie innych powłok lub narzędzi umożliwiających wykonanie shell). Zalecanym podejściem jest whitelistowanie konkretnych poleceń zgodnie z zasadą least privilege.
 
 ## Analiza wpisów w pliku `/etc/sudoers` (Case Study)
 
@@ -52,6 +52,6 @@ Analiza:
 - `!requiretty` umożliwia użycie sudo bez interaktywnego terminala.  
 
 Sugerowane działania:
-- konfiguracja jest bezpieczna, nie wymaga działań,
+- konfiguracja jest bezpieczna i nie wymaga działań,
 - opcjonalnie można rozważyć ograniczenie sudo do prawdziwego TTY,
 - monitorować logi sudo (/var/log/auth.log) pod kątem anomalii.
