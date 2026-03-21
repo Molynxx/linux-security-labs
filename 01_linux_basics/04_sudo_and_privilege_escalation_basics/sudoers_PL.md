@@ -49,4 +49,9 @@ Analiza:
 - dostęp do `apt update` działa zgodnie z konfiguracją,
 - próby uruchomienia innych poleceń kończą się niepowodzeniem,
 - `env_reset` usuwa zmienne środowiskowe użytkownika przed wykonaniem polecenia, 
-- `!requiretty` umożliwia użycie sudo bez interaktywnego terminala.
+- `!requiretty` umożliwia użycie sudo bez interaktywnego terminala.  
+
+Sugerowane działania:
+- konfiguracja jest bezpieczna, nie wymaga działań,
+- opcjonalnie można rozważyć ograniczenie sudo do prawdziwego TTY,
+- monitorować logi sudo (/var/log/auth.log) pod kątem anomalii.
