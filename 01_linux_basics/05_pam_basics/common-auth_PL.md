@@ -11,6 +11,7 @@ Znajdują się tutaj moduły ochronne, uwierzytelniające oraz decyzyjne:
 - Moduły ochronne: 
 	- `pam_faillock.so / pam_tally2.so` - liczenie prób (blokada brute force),
 	- `pam_faildelay.so` - opóźnienie po nieudanej próbie logowania, 
+- Moduły uwierzytelniające:   b
 	- `pam_unix.so` - moduł lokalnego logowania,
 	- `pam_ldap.so` i `pam_sss.so` - moduły logowania zdalnego,
 - Moduły decyzyjne:
@@ -21,10 +22,10 @@ Znajdują się tutaj moduły ochronne, uwierzytelniające oraz decyzyjne:
 W tym typie najbezpieczniejszym wyborem jest stosowanie flagi `required`. Wyjątkiem jest moduł `pam_deny.so`, który może mieć flagę `requisite`, aby natychmiast przerwać proces auth w przypadku niepowodzenia. Mogą tutaj występować rozszerzone flagi kontrolne:  
 Przykład:  
 	`auth required [success=1 default=ignore] pam_unix.so`  
-W tym przypadku `success=1` oznacza, że jeśli moduł zwróci sukces to jedna kolejna linia zostanie pomięta. 
+W tym przypadku `success=1` oznacza, że jeśli moduł zwróci sukces to jedna kolejna linia zostanie pominięta. 
 
 ## Na co zwracać uwagę
-- zmiany w pliku common-auth, jeśli były to jakie, kiedy i przez kogo wprowadzone,
+- zmiany w pliku common-auth, jeśli były, to jakie, kiedy i przez kogo wprowadzone,
 - czy w pliku są wszystkie moduły zapewniające bezpieczeństwo procesu logowania,
 - czy jest właściwa kolejność modułów, 
 - czy moduły mają właściwą flagę kontrolną,
@@ -34,7 +35,7 @@ W tym przypadku `success=1` oznacza, że jeśli moduł zwróci sukces to jedna k
 - każda zmiana pliku common-auth to potencjalne zagrożenie, jednak nie zawsze oznacza incydent,
 - brak modułów ochronnych zwiększa zagrożenie brute force, 
 - Moduły uwierzytelniające powinny występować po modułach ochronnych, aby moduły ochronne mogły działać poprawnie,  
-- należy sprawdzać czy moduły mają odpowiednie flagi kontrolne. Niewłaściwe flagi mogą pomijać istotne moduły w stosie typu. 
+- należy sprawdzać czy moduły mają odpowiednie flagi kontrolne. Niewłaściwe flagi mogą powodować pomijanie istotnych modułów w stosie typu.   
 
 ## Przykłady analizy konfiguracji (case study) 
 
@@ -47,7 +48,7 @@ auth optional pam_permit.so
 
 Analiza:    
 - Moduł uwierzytelniający jest przed modułem ochronnym, więc uwierzytelnianie odbywa się bez jakiejkolwiek ochrony przed brute force. 
-- Moduł uwierzytelniający ma flagę `sufficient`, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe modułu typu auth zostaną pominięte.        
+- Moduł uwierzytelniający ma flagę `sufficient`, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe moduły typu auth zostaną pominięte.        
 To jest krytycznie zła konfiguracja pliku narażona na brute force i gwarantuje dostęp po złamaniu hasła.  
 
 Sugerowane działania:  
