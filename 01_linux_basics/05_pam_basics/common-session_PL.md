@@ -11,16 +11,16 @@ To jest faza sesji. Od typu session zależy wszystko co się dzieje po potwierdz
 - logowanie aktywności. 
 
 ## Moduły typu session i ich kolejność 
-W tym module występują zupełnie inne moduły (nie licząc `pam.unix.so`) niż w typach auth i account. Wśród modułów typu session wyróżnić można:
+W tym module występują zupełnie inne moduły (nie licząc `pam_unix.so`) niż w typach auth i account. Wśród modułów typu session wyróżnić można:
 - `pam_limits.so` -  nakłada limity na zasoby i procesy sesji użytkownika. 
 - `pam_env.so` - inicjalizacja bezpiecznego środowiska użytkownika,
 - `pam_umask.so` - instrukcja jakie uprawnienia mają być zabrane nowo tworzonym plikom i katalogom.
 - `pam_unix.so` -  otworzenie, utrzymanie i zamknięcie sesji użytkownika,  
 - `pam_systemd.so` - rejestruje sesję użytkownika w systemd - logind,
 - `pam_loginuid.so` - przypisuje UID (AUID) użytkownika do wszystkich procesów w sesji. 
-- `pam_exec.so` - pozwala uruchomić zewnętrzny program lub skrypt na określonym etapie PAM. J
+- `pam_exec.so` - pozwala uruchomić zewnętrzny program lub skrypt na określonym etapie PAM. 
 - `pam_motd.so` - wyświetla Message Of The Day użytkownikowi po otwarciu sesji.
-- `pam_mail.so` - sprawdza czy istnieje plik poczty w `/var/mail/username` lub `/var/spool/mail/`username i czy nie jest pusty. 
+- `pam_mail.so` - sprawdza czy istnieje plik poczty w `/var/mail/username` lub `/var/spool/mail/username` i czy nie jest pusty. 
 - `pam_lastlog.so` - zapisuje i aktualizuje w pliku `/var/log/lastlog` informacje o ostatnim logowaniu użytkownika. 
 
 ## Flagi kontrolne modułów
@@ -36,14 +36,14 @@ Ponieważ faza session odpowiada za szereg powiązanych zdarzeń, zagrożenia w 
 Przykłady: 
 - utrata spójności sesji i sprzątania procesów (`pam_unix.so`, `pam_systemd.so`),
 - utrata audytu i tożsamości użytkownika (`pam_unix.so`, `pam_loginuid.so`),
-- manipulacja środowiskiem wykonawczym i politykami (`pam_env.so`, `pam_exec.so`, `pam_limits.so`, `pam_umask.so`.
+- manipulacja środowiskiem wykonawczym i politykami (`pam_env.so`, `pam_exec.so`, `pam_limits.so`, `pam_umask.so`).
 - problemy zarządcze i obserwowalności systemu (`pam_lastlog.so`, opcjonalnie `pam_motd.so`, `pam_mail.so`),
 - ryzyko socjotechniki / manipulacji użytkownikiem (`pam_motd.so`, `pam_mail.so`).
 
 ## Wnioski 
 - kluczowe moduły odpowiedzialne za audyt, środowisko i zarządzanie sesją powinny mieć flagę `required`,
 - kolejność modułów w common-session jest krytyczna: środowisko -> sesja -> systemd -> audyt -> pozostałe, 
-- moduły wykonujące skrypty lub pokazujące info (`pam_exec.so`, `pam_mail.so`, `pam_mtod.so`) wymagają weryfikacji ścieżek i właścicieli. 
+- moduły wykonujące skrypty lub pokazujące info (`pam_exec.so`, `pam_mail.so`, `pam_motd.so`) wymagają weryfikacji ścieżek i właścicieli. 
 
 ## Przykłady analizy konfiguracji pliku common-session (Case Study)
 
@@ -61,7 +61,7 @@ session optional pam_exec.so
 session optional pam_lastlog.so  
 
 Analiza:    
-- to jest przykład prawidłowego ustawienie common-session. Moduły są w odpowiedniej kolejności a ich flagi są poprawne.    
+- to jest przykład prawidłowego ustawienia common-session. Moduły są w odpowiedniej kolejności a ich flagi są poprawne.    
 
 Sugerowane działanie:  
 -  sprawdzenie ścieżek modułów `pam_exec.so`, `pam_motd.so`, `pam_mail.so`.  
@@ -81,7 +81,7 @@ session optional pam_lastlog.so
 Analiza:  
 W tym modelu występują dwa istotne dla bezpieczeństwa błędy:
 - moduł `pam_limits.so` ma flagę `optional`, a to oznacza, że moduł może się nie wykonać, a jeśli tak się stanie, nie zostaną nałożone na sesję żadne limity. 
-- brak modułu `pam_logiuid.so` utrudni audyt, ponieważ w logach procesów nie będzie informacji o AUID.  
+- brak modułu `pam_loginuid.so` utrudni audyt, ponieważ w logach procesów nie będzie informacji o AUID.  
 
 Sugerowane działanie:   
 - zmienić flagę modułu `pam_limits.so` na `required`, dodać moduł `pam_logiuid.co` za modułem `pam_systemd.so`.  
@@ -104,5 +104,5 @@ W tym przykładzie występuje jeden ale bardzo poważny błąd:
 - moduł `pam_env.so` jest oznaczony flagą `optional`, a to oznacza, że moduł ten może się nie wykonać. Zagrożenia wynikające z niewykonania się tego modułu to bardzo szeroka klasa zagrożeń manipulacji zmiennymi środowiskowymi. Brak `pam_env.so` jako `required` otwiera drogę do manipulacji PATH, TMPDIR, LOCALE, IFS, co  może prowadzić do eskalacji uprawnień i persistence.  
 
 Sugerowane działanie:   
-- zmienić flagę modułu `pam_env.so` na 'required'.
+- zmienić flagę modułu `pam_env.so` na `required`.
 
