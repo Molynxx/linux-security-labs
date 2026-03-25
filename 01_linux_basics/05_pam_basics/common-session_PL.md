@@ -12,7 +12,7 @@ To jest faza sesji. Od typu session zależy wszystko co się dzieje po potwierdz
 
 ## Moduły typu session i ich kolejność 
 W tym module występują zupełnie inne moduły (nie licząc `pam_unix.so`) niż w typach auth i account. Wśród modułów typu session wyróżnić można:
-- `pam_limits.so` -  nakłada limity na zasoby i procesy sesji użytkownika. 
+- `pam_limits.so` -  nakłada limity na zasoby i procesy sesji użytkownika, 
 - `pam_env.so` - inicjalizacja bezpiecznego środowiska użytkownika,
 - `pam_umask.so` - instrukcja jakie uprawnienia mają być zabrane nowo tworzonym plikom i katalogom.
 - `pam_unix.so` -  otworzenie, utrzymanie i zamknięcie sesji użytkownika,  
@@ -37,7 +37,7 @@ Przykłady:
 - utrata spójności sesji i sprzątania procesów (`pam_unix.so`, `pam_systemd.so`),
 - utrata audytu i tożsamości użytkownika (`pam_unix.so`, `pam_loginuid.so`),
 - manipulacja środowiskiem wykonawczym i politykami (`pam_env.so`, `pam_exec.so`, `pam_limits.so`, `pam_umask.so`).
-- problemy zarządcze i obserwowalności systemu (`pam_lastlog.so`, opcjonalnie `pam_motd.so`, `pam_mail.so`),
+- problemy zarządcze i obserwowalności systemu (`pam_lastlog.so`, opcjonalnie `pam_motd.so`, `pam_mail.so`), moduły te wymagają sprawdzenia praw dostępu i właścicieli plików,
 - ryzyko socjotechniki / manipulacji użytkownikiem (`pam_motd.so`, `pam_mail.so`).
 
 ## Wnioski 
@@ -82,9 +82,10 @@ Analiza:
 W tym modelu występują dwa istotne dla bezpieczeństwa błędy:
 - moduł `pam_limits.so` ma flagę `optional`, a to oznacza, że moduł może się nie wykonać, a jeśli tak się stanie, nie zostaną nałożone na sesję żadne limity. 
 - brak modułu `pam_loginuid.so` utrudni audyt, ponieważ w logach procesów nie będzie informacji o AUID.  
+- `pam_env.so` powinien być ustawiony przed `pam_limits.so`, żeby środowisko było poprawnie ustawione przed nakładaniem limitów. 
 
 Sugerowane działanie:   
-- zmienić flagę modułu `pam_limits.so` na `required`, dodać moduł `pam_logiuid.co` za modułem `pam_systemd.so`.  
+- zmienić flagę modułu `pam_limits.so` na `required`, dodać moduł `pam_loginuid.so` za modułem `pam_systemd.so`.  
 
 ### Case Study 3
 
@@ -101,7 +102,8 @@ session optional pam_lastlog.so
 
 Analiza:   
 W tym przykładzie występuje jeden ale bardzo poważny błąd:
-- moduł `pam_env.so` jest oznaczony flagą `optional`, a to oznacza, że moduł ten może się nie wykonać. Zagrożenia wynikające z niewykonania się tego modułu to bardzo szeroka klasa zagrożeń manipulacji zmiennymi środowiskowymi. Brak `pam_env.so` jako `required` otwiera drogę do manipulacji PATH, TMPDIR, LOCALE, IFS, co  może prowadzić do eskalacji uprawnień i persistence.  
+- `pam_env.so` powinien być ustawiony przed `pam_limits.so`, żeby środowisko było poprawnie ustawione przed nakładaniem limitów, co jest poprane, jednak ma niepoprawną flagę `optional`. 
+To oznacza, że moduł ten może się nie wykonać. Zagrożenia wynikające z niewykonania się tego modułu to bardzo szeroka klasa zagrożeń manipulacji zmiennymi środowiskowymi. Brak `pam_env.so` jako `required` otwiera drogę do manipulacji PATH, TMPDIR, LOCALE, IFS, co  może prowadzić do eskalacji uprawnień i persistence.  
 
 Sugerowane działanie:   
 - zmienić flagę modułu `pam_env.so` na `required`.
