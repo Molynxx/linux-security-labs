@@ -102,7 +102,7 @@ session optional pam_lastlog.so
 
 Analiza:   
 W tym przykładzie występuje jeden ale bardzo poważny błąd:
-- `pam_env.so` powinien być ustawiony przed `pam_limits.so`, żeby środowisko było poprawnie ustawione przed nakładaniem limitów, co jest poprane, jednak ma niepoprawną flagę `optional`. 
+- `pam_env.so` powinien być ustawiony przed `pam_limits.so`, żeby środowisko było poprawnie ustawione przed nakładaniem limitów, jednak ma niepoprawną flagę `optional`. 
 To oznacza, że moduł ten może się nie wykonać. Zagrożenia wynikające z niewykonania się tego modułu to bardzo szeroka klasa zagrożeń manipulacji zmiennymi środowiskowymi. Brak `pam_env.so` jako `required` otwiera drogę do manipulacji PATH, TMPDIR, LOCALE, IFS, co  może prowadzić do eskalacji uprawnień i persistence.  
 
 Sugerowane działanie:   
