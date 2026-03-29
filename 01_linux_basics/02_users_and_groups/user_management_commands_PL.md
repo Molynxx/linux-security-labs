@@ -1,17 +1,17 @@
 # User management commands 
 
 ## Cel 
-Celem laboratorium było zrozumienie podstawowych poleceń do zarządzania użytkownikami w Linux oraz ich znaczenia dla bezpieczeństwa systemu.
+Celem laboratorium było zrozumienie podstawowych poleceń do zarządzania użytkownikami w Linuxie oraz ich znaczenia dla bezpieczeństwa systemu.
 
 ## useradd
 Tworzy nowego użytkownika w systemie, dodaje wpis do:
-- `/etc/passwd` - login, marker x, UID, GUID, katalog domowy, shell, 
+- `/etc/passwd` - login, marker x, UID, GID, katalog domowy, shell, 
 - `/etc/shadow` - tworzy wpis dla użytkownika ( domyślnie bez hasła - konto zablokowane: `!` lub `*`, useradd nie ustawia hasła),
 - `/etc/group` - wpis grupy prywatnej użytkownika (jeśli jest tworzona).
 Przykład:
 	`useradd  john`
 	`useradd -m -s /bin/bash john`
-	`useradd -G sudo, developers testuser`
+	`useradd -G sudo,developers testuser`
 Ważne opcje:
 - `-m` - tworzy katalog domowy,
 - `-s` - ustawia powłokę,
@@ -27,7 +27,7 @@ Modyfikuje istniejącego użytkownika
 Przykład:
 	`usermod -aG sudo john`
 	`usermod -l newuser olduser`
-	`usermod -d /nowy/home - m username`
+	`usermod -d /nowy/home -m username`
 Ważne opcje:
 - `-aG` - dodaje do grupy bez usuwania z pozostałych, 
 - `-l` - zmiana nazwy użytkownika,
@@ -52,7 +52,7 @@ Przykład:
 	`passwd john`
 Perspektywa bezpieczeństwa:
 - hasła trafiają do `/etc/shadow`,
-- współpraca z PAM (np. `pam_pequality.so` - może wymagać silnego hasła).
+- współpraca z PAM (np. `pam_pwquality.so` - może wymagać silnego hasła).
 
 ## chsh
 Zmienia powłokę użytkownika.
@@ -60,10 +60,10 @@ Przykład:
 	`chsh -s /bin/bash john`
 Perspektywa bezpieczeństwa:
 - ustawienie `/usr/sbin/nologin` - blokada logowania,
-- podejrzane powłoki = Red Flag.
+- podejrzane powłoki = red flag.
 
 ## id 
-Wyświetla UID, GUID i grupy użytkownika.
+Wyświetla UID, GID i grupy użytkownika.
 Przykład:
 	`id john`
 Perspektywa bezpieczeństwa:
