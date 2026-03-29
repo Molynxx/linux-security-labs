@@ -12,7 +12,7 @@ Każdy typ odpowiada za inny etap procesu, dlatego ich kolejność wpływa bezpo
 - `account` - autoryzacja, 
 - `session` - zarządzanie sesją,
 - `password` - zmiana hasła.
-Nieprawidłowa kolejność może prowadzić do nieautoryzowanego dostępu lib nieskutecznej kontroli użytkownika (np. otwarcie sesji przed uwierzytelnieniem).
+Nieprawidłowa kolejność może prowadzić do nieautoryzowanego dostępu lub nieskutecznej kontroli użytkownika (np. otwarcie sesji przed uwierzytelnieniem).
 
 ## Zadania poszczególnych typów
 - `auth` - uwierzytelnienie użytkownika:
@@ -25,7 +25,7 @@ Nieprawidłowa kolejność może prowadzić do nieautoryzowanego dostępu lib ni
 	- blokada logowania w trybie maintenance (`/etc/nologin`),
 	- blokada konta po przekroczeniu limitu prób (na podstawie danych z `auth`),
 	- decyzja o przyznaniu lub odmowie dostępu.
-- `session` - zarządzenie sesją użytkownika:
+- `session` - zarządzanie sesją użytkownika:
 	- tworzenie i zamykanie sesji,
 	- ustawianie zmiennych środowiskowych, 
 	- nakładanie limitów systemowych, 
@@ -36,15 +36,15 @@ Nieprawidłowa kolejność może prowadzić do nieautoryzowanego dostępu lib ni
 	- egzekwowanie polityk haseł (siła, rotacja, historia).
 
 ## Przepływ informacji między typami
-Podczas logowani użytkownika typy działają w kolejności:
+Podczas logowania użytkownika typy działają w kolejności:
 `auth -> account -> session`
 - `auth` weryfikuje tożsamość użytkownika i zbiera informacje o próbach logowania, 
-- `account` wykorzystuje te informacje do podjęcia decyzji o dostępie (mp. blokada konta),
+- `account` wykorzystuje te informacje do podjęcia decyzji o dostępie (np. blokada konta),
 - `session` tworzy środowisko pracy użytkownika po pomyślnym zalogowaniu. 
-Typ `password` nie jest częścią procesu logowania, lecz operacji zmiany hasła. Np. podczas logowania przez SSH użytkownik przechodzi przez typy auth -> account -> session, gdzie błędne hasło zostanie odrzucone na etapie auth, a zablokowane konto na etapie account. 
+- `password` nie jest częścią procesu logowania, lecz operacji zmiany hasła. Np. podczas logowania przez SSH użytkownik przechodzi przez typy auth -> account -> session, gdzie błędne hasło zostanie odrzucone na etapie auth, a zablokowane konto na etapie account. 
 
 ## Typy a moduły PAM
-Typy definiują fazę działania, natomiast moduły realizują konkretnie zadania.
+Typy definiują fazę działania, natomiast moduły realizują konkretne zadania.
 - typ = etap procesu (`auth`, `account`, `session`, `password`),
 - moduł = funkcja (`pam_unix.so`, `pam_faillock.so`).
 Ten sam moduł może działać inaczej w różnych typach, np.:
@@ -68,7 +68,7 @@ Typy PAM są powiązane z różnymi rodzajami zdarzeń w logach:
 Logowanie zależy od aplikacji i modułów PAM, a nie od samych typów. 
 
 ## Wnioski bezpieczeństwa
-POprawna konfiguracja typów PAM:
+Poprawna konfiguracja typów PAM:
 - chroni przed brute force,
 - zapobiega nieautoryzowanemu dostępowi,
 - umożliwia kontrolę dostępu do kont, 
