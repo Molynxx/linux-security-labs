@@ -47,14 +47,14 @@ auth required pam_deny.so
 auth optional pam_permit.so    
 
 Analiza:    
-- kolejność modułów jest prawidłowa. 
-- Moduł uwierzytelniający ma flagę `sufficient`, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe moduły typu auth zostaną pominięte,    
+- moduł uwierzytelniający ma flagę `sufficient`, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe moduły typu auth zostaną pominięte,  
+- moduł `pam_faillock.so` nie ma ustawionej opcji,
 - moduł `pam_permit.so` - nie powinien występować w systemach produkcyjnych.       
 To jest krytycznie zła konfiguracja pliku narażona na brute force i gwarantuje dostęp po złamaniu hasła.  
 
 Sugerowane działania:  
 - zmienić flagę modułu `pam_unix.so` na `required`,
-- dodać opcję `authfail` dla modułu `pam_unix.so`,
+- dodać opcję `authfail` dla modułu `pam_faillock.so`,
 - usunąć moduł `pam_permit.so`. 
 
 ### Przykład 2
