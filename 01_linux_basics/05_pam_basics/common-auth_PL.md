@@ -66,7 +66,6 @@ auth requisite pam_deny.so
 auth required pam_permit.so    
 
 Analiza:    
-- moduły są w poprawnej kolejności, występują moduły ochronne. 
 - żeby mógł zadziałać moduł `pam_faillock.so` z opcją `preauth` należy dodać ten moduł również za `pam_unix.so` z opcją `authfail`, która będzie zliczać próby,
 - moduł uwierzytelniający ma rozszerzoną flagę kontrolną co powoduje, że gdy moduł zwróci sukces nastąpi pominięcie 2 kolejnych linii. Ustawienie jest poprawne.
 - moduł `pam_permit.so` - nie powinien występować w systemach produkcyjnych. 
