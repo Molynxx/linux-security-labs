@@ -8,12 +8,12 @@ Common-auth odpowiada za proces uwierzytelniania i zawiera ustawienia globalne P
 
 ## Typowe moduły i ich kolejność dla fazy auth
 Znajdują się tutaj moduły ochronne, uwierzytelniające oraz decyzyjne:
+- Moduły uwierzytelniające:   
+	- `pam_unix.so` - moduł lokalnego logowania,
+	- `pam_ldap.so` i `pam_sss.so` - moduły logowania zdalnego,
 - Moduły ochronne: 
 	- `pam_faillock.so / pam_tally2.so` - liczenie prób (blokada brute force),
 	- `pam_faildelay.so` - opóźnienie po nieudanej próbie logowania, 
-- Moduły uwierzytelniające:   b
-	- `pam_unix.so` - moduł lokalnego logowania,
-	- `pam_ldap.so` i `pam_sss.so` - moduły logowania zdalnego,
 - Moduły decyzyjne:
 	- `pam_deny.so` - wymusza końcową decyzję `deny`,
 	- `pam_permit.so` - jeśli wszystko się powiodło, decyduje o przyznaniu dostępu `allow`.
@@ -47,13 +47,15 @@ auth required pam_deny.so
 auth optional pam_permit.so    
 
 Analiza:    
-- Moduł uwierzytelniający jest przed modułem ochronnym, więc uwierzytelnianie odbywa się bez jakiejkolwiek ochrony przed brute force. 
-- Moduł uwierzytelniający ma flagę `sufficient`, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe moduły typu auth zostaną pominięte.        
+- kolejność modułów jest prawidłowa. 
+- Moduł uwierzytelniający ma flagę `sufficient`, a to oznacza, że w momencie kiedy moduł zwróci sukces wszystkie pozostałe moduły typu auth zostaną pominięte,    
+- moduł `pam_permit.so` - nie powinien występować w systemach produkcyjnych.       
 To jest krytycznie zła konfiguracja pliku narażona na brute force i gwarantuje dostęp po złamaniu hasła.  
 
 Sugerowane działania:  
 - zmienić flagę modułu `pam_unix.so` na `required`,
-- umieścić moduł `pam_unix.so` za modułem ochronnym. 
+- dodać opcję `authfail` dla modułu `pam_unix.so`,
+- usunąć moduł `pam_permit.so`. 
 
 ### Przykład 2
 
@@ -65,7 +67,10 @@ auth required pam_permit.so
 
 Analiza:    
 - moduły są w poprawnej kolejności, występują moduły ochronne. 
+- żeby mógł zadziałać moduł `pam_faillock.so` z opcją `preauth` należy dodać ten moduł również za `pam_unix.so` z opcją `authfail`, która będzie zliczać próby,
 - moduł uwierzytelniający ma rozszerzoną flagę kontrolną co powoduje, że gdy moduł zwróci sukces nastąpi pominięcie 2 kolejnych linii. Ustawienie jest poprawne.
+- moduł `pam_permit.so` - nie powinien występować w systemach produkcyjnych. 
 
 Sugerowane działania:   
-- konfiguracja jest poprawna i nie wymaga działań. 
+- dodać moduł `pam_faillock.so` z opcją `authfail`, dla poprawnego działania opcji `preauth`,
+- usunąć moduł `pam_permit.so`. 
