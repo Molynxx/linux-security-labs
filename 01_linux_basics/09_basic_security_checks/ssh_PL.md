@@ -26,7 +26,7 @@ Obserwacje dotyczą domyślnej konfiguracji SSH w Kali Linux.
 	- PermitRootLogin ustawione jest na prohibit-password,
 	- PasswordAuthentication ustawiony jest na yes,
 	- PubKeyAuthentication ustawiony jest na yes,
-	- PermitEpmtyPasswords ustawiony jest na no, 
+	- PermitEmptyPasswords ustawiony jest na no, 
 	- AllowUsers oraz DenyUsers nie są skonfigurowane,
 	- AllowGroups oraz DenyGroups nie są skonfigurowane, 
 	- MaxAuthTries ustawione jest na 6,
@@ -35,7 +35,7 @@ Obserwacje dotyczą domyślnej konfiguracji SSH w Kali Linux.
 
 ## Wnioski bezpieczeństwa
 Z perspektywy SOC w środowisku produkcyjnym powyższe ustawienia wymagałyby dodatkowej konfiguracji w celu ograniczenia ryzyka.
-- domyślny port 22 jest powszechnie znany i często skanowany. Zalecana zmiana portu na niestandardowy,
+- domyślny port 22 jest powszechnie znany i często skanowany. Zalecana zmiana portu na niestandardowy,co ograniczy skany,
 - nasłuchiwanie na wszystkich adresach IPv6 ([::}) jeśli IPv6 nie jest używane, ograniczyć nasłuch wyłącznie do IPv4,  
 - nasłuch na 0.0.0.0 zwiększa powierzchnię ataku - zalecane ograniczenie do konkretnego adresu IP/interfejsu,
 - PermitRootLogin prohibit-password ogranicza ryzyko brute force,
@@ -43,7 +43,7 @@ Z perspektywy SOC w środowisku produkcyjnym powyższe ustawienia wymagałyby do
 - PubKeyAuthentication yes jest ustawieniem bezpiecznym i zalecanym, 
 - PermitEmptyPassword no jest najlepszym możliwym ustawieniem,
 - Brak konfiguracji AllowUsers / DenyUsers oraz AllowGroups / DenyGroups oznacza brak ograniczeń dostępu, 
-- MaxAuthTries ustawione na 6 może ułatwić brute force, zalecaną wartością jest 3, z
+- MaxAuthTries większa liczba prób zwiększa okno dla brute force, szczególnie bez dodatkowych mechanizmów (m. fail2ban /PAM),
 - UsePam yes, oznacza że SSH korzysta z mechanizmów PAM. 
 
 ## Najczęstsze misconfigi SSH
@@ -111,7 +111,7 @@ Analiza:
 		- klucz admina zostanie uszkodzony, niepoprawnie zostanie zdefiniowane AllowUsers, zmieni się konfiguracja SSH, to serwer jest zablokowany administracyjnie, 
 		- tego jednego konta używa kilku adminów, utrudniony jest audyt, nie wiadomo, który admin jakie procesy uruchomił. 
 		Dlatego w tym przypadku zawsze warto ustawić dostęp dla grupy adminów, dzięki czemu można uniknąć powyższych konsekwencji.
-- PermitRootLogin w tym przypadku i tak nie zadziała, ponieważ root nie znajduje się w grupie AllowUsers, więc nawet podczas logowania kluczem, zostanie najpierw sprawdzona lista użytkowników z dozwolonym dostępem. A ponieważ root tam nie ma, nie zaloguje się nawet kluczem.
+- PermitRootLogin AllowUsers jest sprawdzane wcześniej niż PermitRootLogin, dlatego root i tak nie uzyska dostępu,
 - MaxAuthTries - ustawiona wartość jest zbyt duża, może zwiększyć ryzyko brute force.  
 
 Sugerowane działania:  
@@ -146,7 +146,10 @@ mar 6 22:17:02 kali sshd [2367]: Accepted publickey for admin from 198.51.100.45
 Analiza:  
 - konfiguracja SSH jest ustawiona poprawnie, z wyjątkiem AllowUsers - ma tylko jednego użytkownika, co zwiększa ryzyko administracyjnego zablokowania serwera lub utraty kontroli nad serwerem,
 - log 1 - logowanie z systemu kali za pomocą klucza dla użytkownika admin, odbywa się z lokalnego adresu IP, port 54321. Tutaj nic nie wskazuje na to, że dzieje się coś złego. Wygląda na zwyczajne logowanie admina w godzinach pracy z sieci lokalnej,
-- log 2 - wiele zakończonych niepowodzeniem prób logowania do konta admin za pomocą hasła co jest zabronione w konfiguracji, logowania odbywają się późno w nocy co 4 sekundy z zewnętrznego adresu IP. Wzorzec wskazuje na zautomatyzowaną próbę brute force. Admin na pewno wie, że możliwość zalogowania zdalnie odbywa się wyłącznie za pomocą klucza, więc dlaczego miałby próbować logowania za pomocą hasła, 
+- log 2 - wiele zakończonych niepowodzeniem prób logowania do konta admin za pomocą hasła co jest zabronione w konfiguracji, logowania odbywają się późno w nocy co 4 sekundy z zewnętrznego adresu IP. Wzorzec wskazuje na zautomatyzowaną próbę brute force. Jeśli PasswordAutenthication=no, a w logach pojawiają się 'Failed password', może to oznaczać także: 
+	- próbę ataki zanim konfiguracja została zastosowana,
+	- inny mechanizm (np. PAM / failback),
+	- lub próbę nieobsługiwanej metody uwierzytelniania. 
 - log 3 - logowanie po 22 wieczorem powinno budzić podejrzenia, zwłaszcza jeśli to nie są godziny pracy. Teoretycznie to mógł być admin pragnący przeprowadzić jakieś prace na serwerze poza godzinami pracy, to jeszcze nie jest powód do paniki, jednak przypadek wymaga dokładnego sprawdzenia, ponieważ może to być kompromitacja klucza lub anomalne logowanie (czas + IP).   
 
 Sugerowane działania:
