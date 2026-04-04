@@ -47,7 +47,7 @@ W tym module skupiam się na:
 - security/ - konfiguracja polityk bezpieczeństwa (np. blokady kont, limity, dostęp czasowy).
 
 ## Uwaga dotycząca przykładów
-Niektóre przykłady wykorzystują uproszczone konfiguracje i nie zawierają pełnych opcji specyficznych dla modułów (np. `pam_faillock.so`: `preauth`, `authfail`, `authsucc`).
+Niektóre przykłady wykorzystują uproszczone konfiguracje i nie zawierają pełnych opcji specyficznych dla modułów.
 Celem jest przedstawienie:
 - logiki działania PAM,
 - wpływu flag kontrolnych,
