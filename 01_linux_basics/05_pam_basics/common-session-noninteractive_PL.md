@@ -37,12 +37,12 @@ session optional pam_umask.so
 
 Analiza:   
 - analiza systemu produkcyjnego,
-- moduł `pam_limits.so` - niepoprawna flaga - ryzyko DoS,
-- `pam_env.so` ustwienie prawidłowe,
-- `pam_systemd.so` - nieprawidłowa flaga - może to utrudnia audyt,
-- `pam_permit.so` - moduł udzielający pozwolenia nie powinien się znajdować w pliku common-session-noninteractive, to potencjalny backdoor. Obecność tego modułu powoduje, że logika bezpieczeństwa PAM zostaje unieważniona, ponieważ moduł ten zawsze zwraca sukces,
-- brakuje modułu `pam_loginuid.so`, który umożliwiłby pełny audyt, AUID). Ten moduł powinien znajdować się przed modułem `pam_systemd.so`, 
-- flaga modułu `pam_umask.so` pozwala na scenariusz, w którym moduł się nie wykona, a więc stwarza to ryzyko tworzenia zbyt otwartych plików.  
+- moduł `pam_limits.so` - niepoprawna flaga, ryzyko DoS,
+- `pam_env.so` ustawienie prawidłowe,
+- `pam_systemd.so` - nieprawidłowa flaga, może to utrudnia audyt,
+- `pam_permit.so` - moduł udzielający pozwolenia nie powinien się znajdować w pliku common-session-noninteractive, to potencjalny backdoor, zawsze zwraca sukces,
+- brakuje modułu `pam_loginuid.so`, brak pełnego audytu (AUID),
+- flaga modułu `pam_umask.so` - ryzyko tworzenia zbyt otwartych plików.  
 
 Sugerowane działania:  
 - zmiana flagi `pam_limits.so` na `required`,
