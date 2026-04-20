@@ -11,7 +11,7 @@ Plik może także zawierać ustawienia niestandardowe wprowadzone przez dodatkow
 ## Standardowe moduły 
 Poza załączonymi plikami common, plik może zawierać moduły:
 - `pam_rootok.so` - moduł zwróci success gdy użytkownik jest rootem, pomija wszystkie dalsze moduły w fazie auth. 
-- `pam_wheel.so use_uid` - pozwala na dostęp do polecenia `su` wyłącznie użytkownikom z grupy wheel 
+- `pam_wheel.so use_uid` - pozwala na dostęp do polecenia `su` wyłącznie użytkownikom z grupy wheel, opcja sprawdza użytkownika wywołującego `su`,
 - `pam_listfile.so` - moduł, który pozwala na dostęp do polecenia `su` użytkownikom, grupom lub hostom ujętym w pliku `/etc/su/nazwa`. 
 Plik `/etc/su/nazwa` trzeba utworzyć z odpowiednimi uprawnieniami - 640 (-rw-r-----),
 - `pam_limits.so` - moduł nakładający limity zasobów (CPU, ilość procesów, RAM, itp),
@@ -27,9 +27,9 @@ Plik: `/var/log/auth.log`
 
 ## Wnioski bezpieczeństwa 
 - brak modułu `pam_wheel.so` - każdy użytkownik może próbować `su` na root. 
-- brak opcji use_uid w module `pam_wheel.so` -  bark powoduje sprawdznie grupy docelowej a nie  użytkownika wywołującego `su`,
+- brak opcji use_uid w module `pam_wheel.so` -  brak powoduje sprawdzenie grupy docelowej a nie  użytkownika wywołującego `su`,
 - `pam_listfile.so` z opcją onerr=succeed - jeśli plik z listą dozwolonych użytkowników nie istnieje lub nie można go otworzyć, PAM i tak zezwala na `su`. 
-- plik z listy (np. /etc/su/allowed)  ze złymi uprawnieniami - wskalacja uprawnień, uprawnienia pliku można sprawdzić za pomocą polecenie `ls -l /etc/su/allowed`,
+- plik z listy (np. /etc/su/allowed) ze złymi uprawnieniami - eskalacja uprawnień, uprawnienia pliku można sprawdzić za pomocą polecenia `ls -l /etc/su/allowed`,
 - dodanie niepowołanego użytkownika do pliku listy - ktoś, kto nie powinien, zyskuje możliwość użycia `su`. Należy monitorować zmiany pliku (np. auditd) i alertować przy każdej modyfikacji, 
 - konto systemowe (np. www-data) w grupie wheel - jeśli atakujący przejmie konto systemowe, może użyć `su - root`, jeśli konto jest w grupie wheel. Należy weryfikować kto należy do tej grupy za pomocą polecenia `getent group wheel`,
 - `su` używane po godzinach pracy - potencjalny atak lub nieautoryzowana aktywność, można monitorować za pomocą polecenia `grep "session opened" /var/log/auth.log` i sprawdzić godziny. 
@@ -49,8 +49,8 @@ Analiza:
 	- brak modułów zabezpieczających system w typie session:
 		- `pam_env.so` - środowisko nie jest ustawione, istnieje możliwość podmiany PATH, LD_PRELOAD, LD_LIBRARY_PATH, TMPDIR, LANG. itp,
 		- `pam_limits.so` - brak limitów sesji - możliwe: DoS, fork bomb, core dump,
-	- bark modułów logujących dane sesji w typie session:
-		- `pam_loginuid.so` - brak zarejestrowanego oryginalnego UID użytkownika (AUID), utorudniony aydyt,
+	- brak modułów logujących dane sesji w typie session:
+		- `pam_loginuid.so` - brak zarejestrowanego oryginalnego UID użytkownika (AUID), utrudniony audyt,
 		- `pam_systemd.so` - brak rejestracji początku i zakończenia sesji, utrudnienie audytu,
 - brak modułu `pam_wheel.so` - każdy będzie mógł spróbować użyć `su`, 
 - brak modułu `pam_listfile.so` nie jest krytyczna, 
@@ -61,12 +61,12 @@ Powyższa konfiguracja jest niebezpieczna.
 Zalecenia:  
 - należy załączyć pliki common i ewentualnie dopisać w pliku `/etc/pam.d/su` odpowiednie moduły personalizowane dla tej aplikacji, zgodnie z polityką bezpieczeństwa,
 - dodać moduł `pam_wheel.so` z opcją `use_uid`,
-- opcjonalnie jeśli to konieczne dodać moduł `pam-listfile.so` pamiętając by nie używać opcji onerr=succeed, 
+- opcjonalnie jeśli to konieczne dodać moduł `pam_listfile.so` pamiętając by nie używać opcji onerr=succeed, 
 - opcjonalnie dodać moduły `pam_time.so`, `pam_access.so`,
 - należy pamiętać, że plik jest czytany przez aplikację z góry do dołu, a kolejność wpisów jest kluczowa. 
 - poprawna konfiguracja:  
 	auth sufficient pam_rootok.so  
-	auth required pam_wheel.so  use_uid
+	auth required pam_wheel.so use_uid
 	@include common-auth  
 	@include common-account  
 	@include common-session  
