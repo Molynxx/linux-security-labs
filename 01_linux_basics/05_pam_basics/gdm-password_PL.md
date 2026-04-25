@@ -10,7 +10,7 @@ To menedżer logowania do środowiska graficznego GNOME. Aplikacja posiada swój
 To plik konfiguracyjny PAM dla aplikacji GDM. Zawiera załączone pliki common (common-auth, common-account, common-session, common-password) oraz opcjonalnie moduły specyficzne dla tej aplikacji, np.:
 - `pam_gdm.so` - komunikacja pomiędzy GDM i PAM,
 - `pam_gnome_keyring.so` - odblokowuje klucze GNOME,
-- `pam_systemd.so` - jeśli jest w common-session (a powinien), nie dodajemy go,
+- `pam_systemd.so` - jeśli jest w common-session (a powinien), nie dodajemy go ponownie,
 
 ## Gdzie znajdują się logi 
 - `/var/log/auth.log` - nieudane i udane próby logowania przez PAM,
