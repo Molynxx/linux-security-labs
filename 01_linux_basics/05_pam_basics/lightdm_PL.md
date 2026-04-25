@@ -95,7 +95,7 @@ Analiza:
 	- logowanie root przez GUI wyłączone - nie spełniony, ponieważ greeter-show-manual-login=true, istnieje możliwość logowania root, 
 	- brak logowania jako gość - nie spełniony, poniważ allow-guest=true oznacza, że opcja logowania jako gość jest włączona, 
 	- ukryta lista użytkowników na ekranie logowania - nie spełniony, ponieważ greeter-hide-users=false, co oznacza, że ukrywanie listy jest wyłączone, 
-	- blokada po 5 nieudanych próbach logowania - nie spełniony - moduły w typie auth są ustawione prawidłowo, jednak z logów wynika, że prób na jednego użytkownika było 6. Przyczyna -> niewłaściwa konfiguracja pliku `/etc/pam.d/security/faillock.conf` (brak wpisu deny=5),
+	- blokada po 5 nieudanych próbach logowania - nie spełniony - moduły w typie auth są ustawione prawidłowo, jednak z logów wynika, że prób na jednego użytkownika było 6. Przyczyna -> niewłaściwa konfiguracja pliku `/etc/security/faillock.conf` (brak wpisu deny=5),
 - zawartość pliku `/etc/pam.d/lightdm` ustawiona poprawnie, zawiera wszystkie pliki common, a plik common-auth zawiera prawidłowo skonfigurowany moduł `pam_faillock.so`. Jeśli common-account i common-session zawierają wszystkie niezbędne moduły, nie ma potrzeby dodawania specyficznych dla aplikacji modułów, 
 - z logów wynika, że nastąpił nocny atak brute force, próby logowania faillock ustawione są na 6, po tym limicie konto jest zablokowane i tak stało się dla konta anna. Dla konta admin_ksi 6 próba okazała się skuteczna, a ponieważ użytkownik ma prawa sudo, jest to krytycznie niebezpieczny incydent. 
 
@@ -105,7 +105,7 @@ Analiza:
 	- zmienić greeter-show-manual-login=true na wartość false,
 	- zmienić allow-guest=true na wartość false, 
 	- zmienić greeter-hide-user=false na wartość true, 
-	- zmienić w pliku `/etc/pam.d/security/faillock.conf` limit dozwolonych, nieudanych prób logowania na wartość 5. 
+	- zmienić w pliku `/etc/security/faillock.conf` limit dozwolonych, nieudanych prób logowania na wartość 5. 
 	Powyższe działania pozwolą spełnić politykę bezpieczeństwa przedsiębiorstwa.
 - sprawdzić kompletność modułów w plikach common-account i common-session,
 - przeprowadzić audyt dla konta admin_ksi, sprawdzić przeprowadzone na tym koncie działania od momentu uzyskania dostępu, zmienić hasło dla konta, wycofać wszystkie nieautoryzowane zmiany wprowadzone do systemu przez to konto.
