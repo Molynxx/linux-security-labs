@@ -27,7 +27,7 @@ Konfiguracja modułów jest bardzo istotna, w przypadku złej konfiguracji mogą
 
 ## Wnioski bezpieczeństwa
 - sprawdzenie, czy wszystkie krytyczne moduły znajdują się w stosie i mają poprawne flagi, 
-- weryfikacja, czy moduły używają opcji `use_authok`, 
+- weryfikacja, czy moduły używają opcji `use_authok`. UWAGA: opcja `use_authtok` dotyczy modułów `pam_unix.so`, `pam_pwhistory.so`, `pam_sss.so`, lecz nie dotyczy modułu `pam_pwquality.so`,  
 - umieszczenie wszystkich istotnych modułów w pliku `common` to dobra praktyka, 
 - regularne sprawdzanie konfiguracji pod kątem bezpieczeństwa hasła i jego zapisu. 
 
