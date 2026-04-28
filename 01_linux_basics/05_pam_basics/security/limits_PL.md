@@ -35,8 +35,8 @@ UWAGA: Pliki czytane są z góry do dołu, kolejne wpisy mogą nadpisać poprzed
 - `cpu` - maksymalny czas CPU (minuty), zagrożenie: DoS lokalny.
 
 ## Przykład konfiguracji pliku limits.conf
-*			soft	core	0  
-*			hard	nproc	1024  
+\*			soft	core	0  
+\*			hard	nproc	1024  
 @admins		hard	nproc	4096  
 student		soft	nofile	256
 
@@ -48,15 +48,15 @@ student		soft	nofile	256
 ## Case study - konfiguracja (fragment /etc/security/limits.conf)
 
 Plik `/etc/security/limits.conf`:  
-*				soft	nproc		100  
-*				hard	nproc		150  
-*				soft	nofile		2048  
-*				hard	nofile		4096  
+\*				soft	nproc		100  
+\*				hard	nproc		150  
+\*				soft	nofile		2048  
+\*				hard	nofile		4096  
 @developers		hard	nproc		2048  
 @developers		hard	nofile		32768   
 student			soft	nofile		1024  
 student			hard	nofile   	2048   
-*				soft 	core		0  
+\*				soft 	core		0  
 root			soft	core		0  
 
 Dodatkowe informacje:  
