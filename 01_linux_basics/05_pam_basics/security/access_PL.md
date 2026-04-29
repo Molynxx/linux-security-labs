@@ -1,7 +1,7 @@
 # /etc/security/access.conf
 
 ## Cel laboratorium
-Zapoznanie się konfiguracją opcji dla modułu `pam_access.so`.
+Zapoznanie się z konfiguracją opcji dla modułu `pam_access.so`.
 
 ## Czym jest pam_access.so
 Jest to moduł stosowany w typie `account` (common-account, sshd, gdm-password / lightdm, sudo), który odpowiada za kontrolę dostępu na podstawie:
@@ -30,13 +30,13 @@ Jest to plik konfiguracyjny modułu `pam_access.so`. Znajdują się w nim opcje 
 Uwaga: kolejność wpisów ma znaczenie - pierwszy pasujący decyduje. Na końcu domyślnie odmowa jeśli brak dopasowania. 
 
 ## Logi
-Logi dla zdarzeń związane z tym modułem znajduję się w `/var/log/auth.log` (`/var/log/secure dla RHEL`). Przykładowe wpisy:  
+Logi dla zdarzeń związanych z tym modułem znajdują się w `/var/log/auth.log` (`/var/log/secure dla RHEL`). Przykładowe wpisy:  
 	pam_access(sshd:account): access denied for user backuper from 203.0.113.45  
 	pam_access(sshd:account): access denied for user root from :1  
 
 ## Wnioski bezpieczeństwa
 - gdy moduł `pam_access.so` jest używany, należy weryfikować poprawność wpisów w `/etc/security/access.conf`, 
-- zła kolejność linii może zablokować dostęp, no `- : ALL : ALL` przed `+ : admin :  ALL` może zablokować admina, 
+- zła kolejność linii może zablokować dostęp, np `- : ALL : ALL` przed `+ : admin :  ALL` może zablokować admina, 
 - błąd składni wpisu w `access.conf` powoduje, że reguła jest ignorowana,
 - EXCEPT w złym miejscu (działa wewnątrz pola nie na końcu reguły):
 	- `- : ALL EXCEPT admin : ALL` - poprawny zapis,
@@ -59,4 +59,4 @@ Rozwiązanie:
 - sprawdzenie w logach czy reguły działają:  
 	grep pam_access /var/log/auth.log  
 	Przykładowy log gdy root próbuje SSH:  
-	pam_access(sshd:account): access denied for user root from 10.00.10.5  
+	pam_access(sshd:account): access denied for user root from 10.10.10.0  
