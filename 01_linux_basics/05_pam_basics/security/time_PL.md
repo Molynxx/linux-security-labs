@@ -15,19 +15,19 @@ Pola:
 - `tty` - terminal (można użyć * dla wszystkich, tty* dla konsoli fizycznych),
 - `użytkownicy` - nazwy użytkowników lub grupy (z `@`), ALL, !root (wszyscy oprócz roota),
 - `czasy` - format [dni] [godziny]:
-	- dni: Mo, Tu, We, Th, Fr, Sa, Su, Wk (weekend), Wd (weekday),Al (all days),
+	- dni: Mo, Tu, We, Th, Fr, Sa, Su, Wk (weekend), Wd (weekday), Al (all days),
 	- godziny: HHMM-HHMM (zakres, może przekraczać północ).
 	Wpis określa kiedy dostęp jest dozwolony, nie ma możliwości wpisów określających odmowę dostępu. 
 
 ## Logi
-Logi tego modułu znajdują się w pliku `/etc/log/auth.log`. Przykładowe wpisy:  
-	`pam_time(sshd:account): access denied for user janusz (time restricted)  
-	pam_time(sshd:account): access denied for user anna (time restricted)`  
+Logi tego modułu znajdują się w pliku `/var/log/auth.log`. Przykładowe wpisy:  
+	`pam_time(sshd:account): access denied for user janusz (time restricted)`  
+	`pam_time(sshd:account): access denied for user anna (time restricted)`  
 Należy monitorować odmowy o nietypowych porach, wielu odmów dla jednego użytkownika. To może oznaczać przejęcie konta lub brute force poza dozwolonymi godzinami.
 
 ## Wnioski bezpieczeństwa
 - `pam_time.so`  nie zastępuje polityki dostępu, to tylko dodatkowa warstwa, 
-- Root często jest wyłączany z ograniczeń (!root) - bo w przypadki awarii zawsze musi mieć dostęp, 
+- Root często jest wyłączany z ograniczeń (!root) - bo w przypadku awarii zawsze musi mieć dostęp, 
 - Zakresy czasu mogą przekraczać północ, 
 - kolejność reguł w `/etc/security/time.conf` ma znaczenie - pierwsze dopasowanie decyduje,
 - brak reguły to brak dopasowania a to oznacza odmowę dostępu,
@@ -46,6 +46,6 @@ Zadanie: Napisz reguły w `/etc/security/time.conf`.
 Rozwiązanie:  
 Potrzebnych reguł - 2, ponieważ mamy dwa rodzaje użytkowników (grupa backup_team i root), którzy mają zupełnie inne godziny dostępu. Wszyscy inni nie mają dostępu, domyślnie brak dopasowania = odmowa dostępu.   
 Reguły:  
-	`sshd;*;@backup_team;Su0200-0400  
-	\*;\*;root;Al00002400  
-	login;*;!root;Wd0600-1800`  
+	`sshd;*;@backup_team;Su0200-0400`  
+	`\*;\*;root;Al0000-2400`  
+	`login;tty*;!root;Wd0600-1800`  
