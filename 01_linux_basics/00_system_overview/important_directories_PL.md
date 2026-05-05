@@ -1,0 +1,99 @@
+# Important directories
+
+## Cel
+Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi wiążą. 
+
+## Katalogi ważne dla SOC
+- `/etc/` konfiguracja systemu:
+	- dlaczego jest ważny: ponieważ każda zmiana może oznaczać backdoor lub eskalację uprawnień,
+	- zagrożenia: 
+		- dodanie nowego użytkownika UID 0 - atakujący może dodać nowego użytkownika z uprawnieniami root. W systemie nie powinno być więcej niż jeden root,
+		- modyfikacja `/etc/shadow` - zmiana hasła roota, lun innego użytkownika, atakujący zostawia sobie drogę do ponownego logowania, która może wyglądać w logach zupełnie normalnie,
+		- modyfikacja `/etc/sudoers` - przyznanie uprawnień sudo. Atakujący może ustawić sudo dla skompromitowanego lub stworzonego przez siebie konta, uzyskując pełne uprawnienie systemowe,
+		- modyfikacja `/etc/ssh/sshd_config` - włączenie logowania rootem lub hasłami. Zwykle w ustawieniach jest wyłączona opcja logowania hasłem dla roota, często też root ma wyłączony dostęp przez SSH. Jeśli atakujący zdobędzie dostęp do root, może włączyć te opcje by logować się zdalnie, 
+		- modyfikacja plików w `/etc/pam.d/` - osłabienie polityki bezpieczeństwa, to bardzo szeroki wektor zagrożeń związanych z uwierzytelnianiem, autoryzacją oraz bezpieczeństwem sesji użytkownika. 
+	- szczegóły powyższych zagrożeń opisane są bardziej szczegółowo w repozytorium  w:
+		- `02_users_and_groups/` - analiza `passwd`, `group`, `shadow`,
+		- `04_sudo_and_privilege_escalation_basics/` - analiza `sudoers`, 
+		- `05_pam_basics/` - analiza pam.d i modułów PAM,
+		- `09_basic_security_checks/` - skrypty do audytu.
+- `/var/log` - logi systemowe: 
+	- dlaczego jest ważny: ponieważ to jest źródło informacji o zdarzeniach jakie miały miejsce w systemie - logowania, sudo, PAM, SSH, ataki. 
+	- zagrożenia:
+		- brak logów w danym przedziale czasowym - może oznaczać, że atakujący uzyskał dostęp do pliku i mógł go wyczyścić, by ukryć swoje działania,
+		- zmiana uprawnień do logów (np. `chmod 777 /var/log/auth.log`) - atakujący mógł zmienić uprawnienia pliku by mieć do nich dostęp z wielu kont i za każdym razem ukrywać swoje działania, 
+		- podmiana programu rotującego logi (logrotate) - jest niebezpieczne ponieważ atakujący uzyskując dostęp do konta jakiejś usługi, dostaje również pełny dostęp do jej katalogu z logami, np. `/var/log/gitlab`. Logrotate działa automatycznie zgodnie z ustawieniami w swoim pliku konfiguracyjnym, uruchamiając się co określony czas i przeprowadzając czynności tworzenia nowego pliku i archiwizowania starego. Atakujący mający dostęp do katalogu logów usługi może umieścić tam plik ze złośliwym kodem, a jeden z katalogów zamienić na link prowadzący np. do `/etc/bash_completion.d/`. W takim przypadku Logrotate, mający uprawnienia roota, zapisze złośliwy plik w archiwum w katalogu wskazanym przez link. Skrypty z tego katalogu uruchamiają się przy każdym zalogowaniu się roota, a więc zależnie od treści złośliwego pliku, może on np. tworzyć nowe konta, modyfikować uprawnienia kont, plików i katalogów, itp.
+	- katalog opisany bardziej szczegółowo w repozytorium znajduje się w:
+		- `07_logging_basics/` - analiza logów, struktura, filtrowanie.
+- `/tmp` i `/var/tmp`:
+	- dlaczego jest ważny: atakujący często tu wrzucają skrypty i narzędzia, zwłaszcza do `/var/tmp`, który nie jest czyszczony podczas restartu. 
+	- zagrożenia:
+		- wrzucenie skryptu i uruchomienie przez cron roota - cron to harmonogram zadań systemu. Jeżeli root lub inny użytkownik z uprawnieniami sudo ma skonfigurowane zadanie cron, które wykonuje plik z `/tmp`, atakujący może wrzucić swój skrypt, 
+		który zostanie wykonany przez cron, 
+		- kompilacja narzędzia do eskalacji uprawnień - atakujący ma dostęp do zwykłego konta i umieszcza w `/tmp` kod źródłowy exploita, kompiluje go i uruchamia. Exploit wykorzystuje lukę w jądrze lub sudo i podnosi uprawnienia atakującego,
+		- ukrycie plików z dziwnymi nazwami - atakujący tworzy plik o nazwie `...` lub `" "`, które można łatwo przeoczyć, lub plik `-rf`, co może uszkodzić polecenia administratora. 
+		- wykonanie skryptu przez podatną usługę (np. PHP) - serwer www ma podatny skrypt PHP, pozwalający na wykonanie kodu (np. system(), eval()). Atakujący wrzuca do `/tmp` skrypt w bashu, a podatny skrypt go wykona. 
+	- katalog opisany bardziej szczegółowo w repozytorium znajduje się w:
+		- `08_tmp_and_file_location/tmp_analisys`.
+	- monitoring:
+		- `ls -la /tmp/` - czy nie ma plików `.sh`, `.py`, `.c` z dziwnymi nazwami, 
+		- `lsof /tmp` - jakie procesy używają plików w `/tmp`.
+- `/home`:
+	- dlaczego jest ważny: ponieważ katalogi domowe użytkowników to miejsca, gdzie atakujący może zostawić backdoory. 
+	- zagrożenia:
+		- dodanie klucza SSH do `/home/user/authorized_keys` - atakujący może dodać swój klucz do zaufanych uzyskując trwały dostęp, 
+		- modyfikacja `~/.bashrc`, `~/.zdhrc`, `~/.profile` - skrypt uruchamiany przy każdym logowaniu, 
+		- wrzucenie narzędzi do katalogu domowego i ukrycie ich dodając kropkę na początku nazwy, 
+		- kradzież kluczy SSH z `~/.ssh/id_rsa`.
+	- monitoring:
+		- `ls -la /home/*/.ssh/` - sprawdzenie, czy nie pojawiły się nowe klucze, 
+		- `diff /home/user/.bashrc /backup/.bashrc` - porównanie z czystą kopią. 
+- `root`:
+	- dlaczego jest ważny: ponieważ to jest katalog domowy roota, jeśli atakujący go modyfikuje, oznacza to, że już ma dostęp do roota, a to bardzo niebezpieczna sytuacja.
+	- zagrożenia:
+		- dodanie klucza SSH do `/root/.ssh/authorized_keys` - krytyczne, trwały dostęp do roota, 
+		- modyfikacja `/root/.bashrc` - backdoor przy logowaniu roota. Plik .bashrc to skrypt wykonywany przy każdym logowaniu interaktywnym. Jest przeznaczony dla konkretnego użytkownika i znajduje się w jego katalogu domowym. To może dawać backdoor atakującemu lub też powodować tworzenie nowego użytkownika. itp,
+		- zapisanie narzędzi do eskalacji, nawet jeśli nie są używane - to oznacza, że atakujący uzyskał już najwyższe uprawnienia.
+	- monitoring:
+		- `sudo ls -la /root/.ssh` - czy nie ma nieznanych kluczy, 
+		- `sudo cat /root/.bashrc` - czy nie ma podejrzanych wpisów, 
+		- `sudo ls -la /root` - czy nie ma podejrzanych plików.
+- `/proc`:
+	- dlaczego jest ważne: to jest wirtualny system plików, który pozwala podejrzeć procesy, argumenty i zmienne środowiskowe.
+	- zagrożenia: 
+		- ukryty proces - nie widać go w `ps`, ale w `/proc` jest widoczny, 
+		- LD_PRELOAD ustawiony w zmiennych środowiskowych procesu - ktoś mógł wstrzyknąć bibliotekę, zwłaszcza jeśli sesja nie była chroniona w PAM modułem `pam_env.so`,
+		- proces uruchomiony z podejrzanego katalogu np. `/tmp` - `ps`, `top`, `htop`, `pstree` bazują na tym samym źródłem co `/proc` jednak można je oszukać. Np. `ps` może być podmieniony przez rootkita albo jego wyniki mogą być filtrowane. `/proc`  pokaże prawdę nawet jeśli `ps` kłamie. 
+	- monitoring:
+		- `ls -la /proc/[0-9]*/exe 2>/dev/null | grep /tmp` - procesy uruchamiane z `/tmp`,
+		- ` grep LD_PRELOAD /proc/*/environ` - szukanie wstrzykniętych bibliotek. 
+- `/boot`:
+	- dlaczego jest ważne: zawiera pliki startowe, które jeśli zostaną zmodyfikowane to potencjalny backdoor może ładować się przed systemem. 
+	- zagrożenia:
+		- podmiana jądra (vmlinuz) - rootkit na poziomie jądra,
+		- modyfikacja initramfs (Initial RAM filesystem) - backdoor przed systemem plików. initramfs to tymczasowy system plików, który jest ładowany do pamięci RAM razem z jądrem. Zawiera on niezbędne sterowniki i skrypty, które pozwalają na odczytanie właściwego systemu pliku z dysku,
+		- modyfikacja GRUB - dodanie parametru `init=/bin/bash` -> root bez hasła. GRUB (GRand Unified Bootloader) to pierwszy program, który uruchamia się po włączeniu komputera. Jego zadaniem jest załadowanie jądra systemu z dysku do pamięci i przekazania mu kontroli. To on pokazuje meny z wyborem systemów (Linux, Windows).
+	- monitoring:
+		- `ls -la /boot/` - czy pliki mają normalne daty a nie np. wczorajsze, 
+		- `md5sum /boot/vmlinuz-$(uname -r)` - porównanie z czystą instalacją jeśli to możliwe. 
+- `/lib`, `/usr/lib`:
+	- dlaczego jest ważne: jeśli biblioteki współdzielone są podmienione, wpływają na wiele programów jednocześnie.
+	- zagrożenia:
+		- podmiana `libc.so` - rootkit wpływający na wszystkie programy, 
+		- dodanie własnej biblioteki i użycie LD_PRELOAD - wstrzyknięcie własnej biblioteki, 
+		- zmiana bibliotek PAM (`libpam.so`) - osłabienie uwierzytelniania. 
+	- monitoring:
+		- `ldd /bin/ls` - sprawdzenie, z jakich bibliotek korzysta program, 
+		- `md5sum /lib/libc.so.6` - porównanie z czystą instalacją,
+		- `grep LD_PRELOAD /proc/*/environ` - wykrywanie wstrzyknięcia. 
+- `/bin`, `/sbin`, `/usr/bin`:
+	- dlaczego jest ważne: znajdują się tu podstawowe programy systemowe, które jeśli są podmienione, atakujący może ukrywać swoją obecność. 
+	- zagrożenia:
+		- podmiana `ls` - ukrywanie plików,
+		- podmiana `ps` - ukrywanie procesów, 
+		- podmiana `netstat` lub `ss` - ukrywanie połączeń sieciowych, 
+		- podmiana `sshd` - backdoor na poziomie logowania. 
+	- monitoring:
+		- `md5sum /bin/ls /bin/ps /usr/bin/netstat` - porównanie z czystą instalacją, 
+		- `rkhunter --check` - automatyczne skanowanie. 
+
