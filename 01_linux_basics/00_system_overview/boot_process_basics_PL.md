@@ -59,8 +59,7 @@ Jest to sekwencja zdarzeń od momentu włączenia zasilania komputera do momentu
 - `systemd`:
 	- zagrożenie: atakujący może dodać usługę, która uruchamia skrypt np. reverse shell.
 		- tworzy skrypt np. `/usr/local/bin/backdoor.sh` (np. reverse shell),
-		- uruchamia usługę:
-			- włącza przy starcie i/lub włącza od razu.			
+		- uruchamia usługę.			
 	Usługa startuje automatycznie przy każdym starcie systemu i działa jako root, a jeśli usługa padnie, systemd restartuje ją. 
 	- jak wykryć:
 		- `systemctl list-unit-files --type=service --state=enabled` - lista wszystkich usług uruchamianych przy starcie, 
@@ -72,9 +71,9 @@ Jest to sekwencja zdarzeń od momentu włączenia zasilania komputera do momentu
 			- `cat /usr/local/bin/backdoor.sh` - czy skrypt istnieje i co zawiera. Należy zwrócić uwagę czy skrypt zawiera `nc -e /bin/bash`, `bash -i >& /dev/tcp/`, `python -c import socket...` - to oznacza reverse shell,
 			- `ls -la /usr/local/bin/backdoor.sh` - kto jest właścicielem skryptu. Jeśli skrypt ma datę modyfikacji z czasu po ataku lub/i właścicielem skryptu jest użytkownik inny niż root (np. www-data) to jest alarmujące. 
 	- jak naprawić (remediacja):
-		- `systemctl stop nazwa.usługi` - zatrzymać usługę,
-		- `systemctl disable nazwa.usługi` - wyłączyć usługę by nie startowała przy boot,
-		- `rm /etc/systemd/system/nazwa.usługi` - usunąć plik usługi, 
+		- `systemctl stop nazwa_usługi.service` - zatrzymać usługę,
+		- `systemctl disable nazwa_usługi.service` - wyłączyć usługę by nie startowała przy boot,
+		- `rm /etc/systemd/system/nazwa_usługi.service` - usunąć plik usługi, 
 		- `rm /usr/local/bin/backdoor.sh` - usunąć skrypt, 
 		- ` systemctl daemon-reload` - przeładować systemd (odświeżyć listę usług). 
 		- sprawdzić, czy  nie ma innych backdoorów (cron, inne usługu, GRUB, initramfs). 
