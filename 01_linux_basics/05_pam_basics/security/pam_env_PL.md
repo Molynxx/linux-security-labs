@@ -51,7 +51,7 @@ Przykład ustawienie PATH:
 		- `cat /proc/PID/environ | grep LD_LIBRARY_PATH` - sprawdzenie jakiej zmiennej używają procesy, 
 		- czerwone flagi: ścieżka wskazuje na katalog użytkownika (np. `/home/user/lib`).
 	- jak naprawić:  
-		- w shell poleceniem `export LD_PRELOAD=...` lub w pliku `pam_env.conf`,
+		- w shell poleceniem `export LD_PRELOAD=` lub w pliku `pam_env.conf`,
 		- w pliku `~/.profile` lub `~/.bashrc`, należy zmienić zmienną za pomocą:
 			- `unset LD_LIBRARY_PATH` - co całkowicie usunie zmienną ze środowiska, 
 			- `export LD_LIBRARY_PATH= ` lub `LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/lib` - ustawienie zmiennej na standardowe biblioteki.  
@@ -70,7 +70,7 @@ Przykład ustawienie PATH:
 		- `echo $PATH` - sprawdzenie aktualnej zmiennej w środowisku, 
 		- `cat /proc/*/environ 2>/dev/null | grep "PATH=" | sort -u` - sprawdzenie w działających procesach czy nie ustawiono innego PATH przed uruchomieniem. 
 		- czerwone flagi - podejrzane PATH:
-			- zawiera `/tmp`, `/home,` `/var/tmp`, `/dev/shm`, 
+			- zawiera `/tmp`, `/home`, `/var/tmp`, `/dev/shm`, 
 			- zaczyna się od katalogu użytkownika (np. `/home/attacker/bin:`),
 			- brak standardowych katalogów `/usr/bin`, `/bin`. 
 	- jak naprawić: 
@@ -112,14 +112,14 @@ Przykład ustawienie PATH:
 	- jak wykryć: sprawdzić wartość zmiennej:
 		-  `echo $IFS | cat -A` - jeśli nic nie zostanie wyświetlone, oznacza, że zmienna została poprawnie ustawiona na białe znaki, 
 		- `grep -r "IFS" /etc/security/pam_env.conf /etc/profile /etc/bash.bashrc
-	 /home*/.bashrc /home/*/.profile /root/.bashrc 2>/dev/null` - to polecenie sprawdzi pliki konfiguracyjne, w których zmienna mogła zostać podmieniona, 
+	 /home/*/.bashrc /home/*/.profile /root/.bashrc 2>/dev/null` - to polecenie sprawdzi pliki konfiguracyjne, w których zmienna mogła zostać podmieniona, 
 		- `cat /proc/*/environ 2>/dev/null | grep "IFS"` - sprawdzenie procesów z jaką wartością zmiennej pracują.   
 		czerwone flagi: 
 			- jeśli jakikolwiek wpis `IFS=` w plikach konfiguracyjnych, 
 			- `IFS` ustawiona na znak inny niż domyślne. 
 	- jak naprawić:  
 		- w pliku `pam_env.conf` - należy usunąć linie z `IFS=` lub ustawić na `IFS OVERRIDE= (pusta wartość)`,
-		- w plikach `/.bashrc`, `/.profile` - należy usunąć linię z `IFS=` lub dodać wpis `unset IFS`,
+		- w plikach `~/.bashrc`, `~/.profile` - należy usunąć linię z `IFS=` lub dodać wpis `unset IFS`,
 		- w `~/.pam_environment` - najlepiej usunąć plik i upewnić się, że opcja `user_readenv=0`,
 		- proces uruchomiony - należy go zabić (kill) - to zatrzyma proces, jednak nie usunie przyczyny. 
 - `LOCALE`:
@@ -134,7 +134,7 @@ Przykład ustawienie PATH:
 		- `LC_ALL` - nadpisuje wszystko, ma najwyższy priorytet. Dobrą praktyką jest ustawienie tej zmiennej na `LC_ALL=C`, wtedy system dostaje kompletne ustawienia lokalne i zachowuje się przewidywalnie i eliminuje skutki podmiany pozostałych zmiennych lokalnych. 
 	- zagrożenie: największym zagrożeniem związanym ze zmianą powyższych zmiennych jest możliwość zburzenia działania skryptów i programów, które polegają na konkretnym formacie danych. Przykładowo zmiana języka może sprawić, że polecenia w skrypcie będą miały zupełnie inne znaczenie i skrypt nie wykona się właściwie. 
 	- jak wykryć: należy szukać nietypowych wartości lub konfiguracji, które ułatwiają atak: 
-		- `greep -r "LANG|LC_*" /etc/security/pam_env.conf /home/*/.bashrc /etc/profile 2>/dev/null` - za pomocą tego polecenia sprawdzamy występowanie zmiennych z nietypowymi wartościami (np. zawierającymi `../`, `:`), 
+		- `grep -r "LANG|LC_*" /etc/security/pam_env.conf /home/*/.bashrc /etc/profile 2>/dev/null` - za pomocą tego polecenia sprawdzamy występowanie zmiennych z nietypowymi wartościami (np. zawierającymi `../`, `:`), 
 		- `grep AcceptEnv /etc/ssh/sshd_config` - czy `sshd_config` zawiera `AcceptEnv LANG LC_*`. W nowoczesnych systemach wyłączone domyślnie. 
 		- `grep pam_env /etc/pam.d/sshd /etc/pam.d/common-session` - czy moduł `pam_env.so` czyta plik użytkownika (`user_readenv=`) - powinno być wyłączone. 
 		- Czerwone flagi:
