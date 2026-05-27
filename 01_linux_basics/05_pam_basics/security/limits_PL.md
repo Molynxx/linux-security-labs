@@ -7,13 +7,14 @@ Celem jest zapoznanie się z plikiem konfiguracyjnym modułu `pam_limits.so` i z
 Jest to moduł stosowany w typie session, którego zadaniem jest nałożenie limitów zasobów na sesję, celem zabezpieczenia działania systemu. 
 
 ## Pliki konfiguracyjne modułu pam_limits.so
-Główny plik konfiguracyjny znajduje się w `/etc/security/limits.conf`. To właśnie w nim określa się rodzaje zabezpieczeń oraz wartości im przypisanych. Format wpisu w pliku wygląda następująco:  
-	<domain> <type> <item> <value>  
-gdzie:
-Domain - użytkownik, grupa (`@group`), wildcard (`*`),
-Type - `soft` (ostrzeżenie), `hard` (maksymalny limit), `-` (oba),
-Item - `core`, `nproc`, `nofile`, `memlock`, `as`, `cpu`, itd,
-Value - wartość. 
+Główny plik konfiguracyjny znajduje się w `/etc/security/limits.conf`. To właśnie w nim określa się rodzaje zabezpieczeń oraz wartości im przypisanych. Format wpisu w pliku wygląda następująco:    
+		[domain] [type] [item] [value]     
+gdzie:  
+Domain - użytkownik, grupa (`@group`), wildcard (`*`),  
+Type - `soft` (ostrzeżenie), `hard` (maksymalny limit), `-` (oba),  
+Item - `core`, `nproc`, `nofile`, `memlock`, `as`, `cpu`, itd,  
+Value - wartość.   
+
 Poza plikiem głównym można konfigurować także pliki dodatkowe jeśli jest potrzeba np. zrobienia wyjątków dla użytkownika/grupy. Te dodatkowe pliki znajdują się w lokalizacji `/etc/security/limits.d/*conf`. Format zapisu jest w nich taki sam jak w pliku głównym. Po co istnieją - ponieważ nie trzeba mieszać w jednym pliku limitów dla rożnych aplikacji. Jest to ważne ze względu na czytelność plików, mamy plik `/etc/security/limits.conf` z ustawieniami globalnymi dla wszystkich, a gdy potrzebujemy np. dla danej aplikacji zmienić wartości robimy to w odpowiednio nazwanym pliku w `/etc/security/limits.d/`. Taki układ znacznie ułatwia audyt i porządkuje całą konfiguracje w sposób czytelny i łatwy do zmiany. 
 Jak to działa: 
 - najpierw czytany jest `/etc/security/limits.conf`,
