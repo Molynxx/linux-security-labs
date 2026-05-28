@@ -19,7 +19,7 @@ Szczegółowe informacje w każdej linii /etc/shadow (oddzielone dwukropkiem `:`
 	- użytkownicy systemowi - często zablokowana możliwość logowania:
 		- ! przed hashem - hasło zablokowane (login hasłem niemożliwy),
 		- !! zwykle oznacza konto utworzone bez ustawionego hasła (np. useradd bez passwd),
-		- * brak możliwości logowania hasłem,
+		- \* brak możliwości logowania hasłem,
 		- puste pole - brak hasła, krytyczne ryzyko,
 	- użytkownicy interaktywni - posiadają hash hasła,
 	- root - zazwyczaj posiada hash hasła, blokada `!` występuje tylko w specyficznych konfiguracjach, np. systemy z wyłączonym logowaniem root,
