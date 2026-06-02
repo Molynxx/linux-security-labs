@@ -10,14 +10,14 @@ Podstawowe opcje:
 - `ps auxf` - wyświetla drzewo procesów (kto kogo uruchomił) - za pomocą tego polecenia można sprawdzić czy jakiś podejrzany proces ma podejrzanego rodzica, 
 - `ps -eo pid,ppid,user,cmd,%cpu,%mem --sort=-%cpu` - format niestandardowy, sortowanie po CPU (malejąco). Umożliwia znalezienie 'winowajcy' gdy system działa wolno,
 - `ps -u root` - wyświetla tyko procesy użytkownika root, czy ma uruchomiony jako dziecko jakiś podejrzany proces, 
-- `ps --ppid 2` - wyświetla procesy, których rodzic ma PID 2 (kworker). Pomaga w sprawdzeniu , czy ktoś nie podpiął się pod fałszywy `kworker`.   
-Przykład"
+- `ps --ppid 2` - wyświetla procesy, których rodzic ma PID 2 (kworker). Pomaga w sprawdzeniu, czy ktoś nie podpiął się pod fałszywy `kworker`.   
+Przykład:
 - `ps aux | grep -E "nc|bash|python|perl|/tmp"` - polecenie to szuka podejrzanych procesów (revers shelle często używają `nc`, `bash` z podejrzanym rodzicem. skrypty z `/tmp`. 
 
 ## Czym jest kworker
-Kworker to proces systemowy Linuxa, który wykonuje zadania w tle na zlecenie jądra (np. obsługa dysków, sieci, sterowników). Jest też dość częstym wektorem ataków - atakujący podpina się proces, z nazwą kworker, żeby działać z ukrycia. 
+Kworker to proces systemowy Linuxa, który wykonuje zadania w tle na zlecenie jądra (np. obsługa dysków, sieci, sterowników). Jest też dość częstym wektorem ataków - atakujący podpina swój proces, z nazwą kworker, żeby działać z ukrycia. 
 - Jak rozpoznać czy kwoker jest prawdziwy czy podrobiony: 
-	- prawdziwy kworker: należy do roota, mieszka w `/usr/bin` lun `/`, nie obciąża CPU nieustannie, nie tworzy plików w `/tmp`,
+	- prawdziwy kworker: należy do roota, mieszka w `/usr/bin` lub `/`, nie obciąża CPU nieustannie, nie tworzy plików w `/tmp`,
 	- fałszywy kworker (malware): może należeć do innego użytkownika (np. nobody, www-data), mieszka w `/tmp` lub `/home`. zużywa CPU, otwiera podejrzane pliki. 
 - jak rozpoznać (polecenia):
 	- `ps aux | grep kworker |grep -v root` - sprawdzenie właściciela, powinien być to root, jeśli to polecenie wyświetli cokolwiek - czerwona flaga,  
@@ -43,7 +43,7 @@ To jest nowsza, bardziej czytelna wersja top (czasem trzeba doinstalować), ma w
 - `F3` - wyszukiwanie procesu po nazwie, 
 - `F4` - filtrowanie (pokaż tylko procesy zawierające tekst),
 - `F5` - widok drzewa (kto kogo uruchomił),
-- `F9` - zabuj proces (wybierz PID, potem sygnał 15 TERM lub 9 KILL),
+- `F9` - zabij proces (wybierz PID, potem sygnał 15 TERM lub 9 KILL),
 - `F10` / `q` - wyjście,
 - `strzałki` - poruszanie się po liście. 
 Z punktu widzenia SOC `htop` jest lepszy ponieważ:
@@ -100,7 +100,7 @@ Zalecanie działania:
 - należy zatrzymać proces poleceniem `kill -9 1234`, 
 - sprawdzić, kto jest właścicielem pliku znajdującego się w `/tmp/.hidden/` - ponieważ plik został usunięty jedynym sposobem jest sprawdzenie tego w audit, pod warunkiem, że został skonfigurowany przed atakiem,
 - w zależności od narzędzi skonfigurowanych w systemie, sprawdzić kiedy plik został utworzony:
-	- za pomocą logów `/var/log/auth.log`, `/var/log/systemlog`,
+	- za pomocą logów `/var/log/auth.log`, `/var/log/syslog`,
 	- za pomocą audit jeśli był skonfigurowany, 
 	- za pomocą historii powłoki poszukując poleceń, które mogły umieścić plik w systemie (wget, curl, nano, touch, chmod),	
 - usunąć pliki z `/tmp` poleceniem `rm /tmp/.hidden/`,
