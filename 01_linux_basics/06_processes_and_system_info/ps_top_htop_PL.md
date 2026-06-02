@@ -70,6 +70,7 @@ Z punktu widzenia SOC `htop` jest lepszy ponieważ:
 Sytuacja:  
 -Serwer produkcyjny Ubuntu działa wolno. W godzinach nocnych (3:00-4:00) skokowo rośnie zużycie CPU (do 80-90%). Poza tymi godzinami CPU jest na poziomie 5-10%.  
 -Wykonane czynności:
+```
 	- `top` z sortowaniem po CPU daje wynik:  
 PID     USER       PR   NI   VIRT      RES     SHR   S  %CPU   %MEM  TIME+ COMMAND    
 1234    root       20   0    250000    50000   2000  S  85.5   2.5   120:30.12 [kworker/0:1]  
@@ -82,10 +83,10 @@ lrwxrwxrwx 1 root root 0 ... /proc/1234/exe -> /tmp/.hidden/update
 COMMAND  PID   USER  FD   TYPE  DEVICE SIZE/OFF  NODE  NAME  
 update   1234  root  cwd  DIR   8,1       4096   2     /  
 update   1234  root  txt  REG   8,1     123456   10    /tmp/.hidden/update (deleted)  
-update   1234  root   3u  IPv4  56789      0t0   TCP   10.0.0.25:4444->185.130.5.253:12345 (ESTABLISHED)  
+update   1234  root   3u  IPv4  56789      0t0   TCP   10.0.0.25:4444->185.130.5.253:12345 (ESTABLISHED)
 	- sprawdzenie cron roota: sudo crontab -l:  
 0 3 * * * /tmp/.hidden/update  
-
+```
 Analiza:
 - Kworker nie jest prawdziwy, ponieważ:
 	- uruchamia się z katalogu /tmp, co nie powinno mieć miejsca. Prawdziwe kworkery startują z katalogów systemowych,
