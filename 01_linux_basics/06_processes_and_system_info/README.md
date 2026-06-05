@@ -6,13 +6,13 @@ Zrozumienie, jak monitorować procesy, analizować katalog `/proc`, sprawdzać p
 ## Zakres
 - `ps_top_htop` - monitorowanie procesów: `ps` (snapshot), `top` / `htop` (na żywo), analiza podejrzanych procesów (lokalizacja, nazwa, użytkownik, sieć, CPU), case study z fałszywym `kworker`,
 - `proc_filesystem` - wirtualny system plików `/proc`, najważniejsze wpisy (`cmdline`, `exe`, `fd`, `environ`, `status`, `maps`, `stack`), oznaczenia (`txt`, `(deleted)`, `REG`), praktyczne polecenia,
-- `system_identity` - podstawowe informacje o systemie: jądro (`unam -a`), restarty (`uptime`, `last reboot`), nazwa hosta, adres IP, dystrybucja (`/etc/os-release`). Zagrożenie i weryfikacja, 
-- `environment_variables` - zmienne środowiskowe: sprawdzania (`env`, `set`, `echo`), ustawienia tymczasowe (`export`) i trwałe (`.bashrc`, `.profile`, `/etc/environmnet`, `pam_env.conf`), usuwanie (`unset`). Odesłanie do szczegółowej analizy zagrożeń w `05_pam_basics/security/pam_env_PL.md`.
+- `system_identity` - podstawowe informacje o systemie: jądro (`uname -a`), restarty (`uptime`, `last reboot`), nazwa hosta, adres IP, dystrybucja (`/etc/os-release`). Zagrożenie i weryfikacja, 
+- `environment_variables` - zmienne środowiskowe: sprawdzanie (`env`, `set`, `echo`), ustawienie tymczasowe (`export`) i trwałe (`.bashrc`, `.profile`, `/etc/environment`, `pam_env.conf`), usuwanie (`unset`). Odesłanie do szczegółowej analizy zagrożeń w `05_pam_basics/security/pam_env_PL.md`.
 
 ## Dlaczego to ważne (SOC/IR)
 - `procesy`- szybkie wykrywanie backdoorów, minerów, reverse shell, 
 - `/proc` - weryfikacja prawdziwych ścieżek i argumentów procesów (nawet jeśli `ps` kłamie),
-- `tożsamość systemu` - podstawa do zrozumienia ataków przez `LD_PRELOAD`, `PATH`, `IFS`.
+- `tożsamość systemu` - wykrywanie podmiany jądra, nieplanowanych restartów, zmian nazwy hosta.
 
 ## UWAGA
 Szczegółowa analiza zagrożeń związanych ze zmiennymi środowiskowymi znajduje się w `05_pam_basics/security/pam_env_PL.md`.
