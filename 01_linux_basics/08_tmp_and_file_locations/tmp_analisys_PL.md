@@ -1,50 +1,94 @@
-# Analiza katalogu /tmp w Linuxie
+# tmp_analysis
 
-## Cel laboratorium
-Celem laboratorium jest zrozumienie jakie zagrożenia wynikają z katalogu `/tmp` i jak go monitorować.
+## Cel 
+Zrozumienie zagrożeń związanych z katalogami tymczasowymi oraz metod monitorowania i bezpiecznego czyszczenia. 
 
-## Czym jest /tmp
-Katalog `/tmp` służy do przechowywania plików tymczasowych tworzonych przez system i aplikacje. To miejsce gdzie aplikacje zapisują dane tymczasowe, np. sesje, cache, locki, sockety, FIFO, pliki robocze. W nowoczesnych systemach Linux występują dwa mechanizmy czyszczenia katalogu `/tmp`:
-- `tmpfs` - wirtualny system plików, który przechowuje dane w pamięci RAM, a nie na dysku. Oznacza to, że pliki w `tmpfs` znikają po restarcie systemu (bo RAM się czyści).
-- `systemd-tmpfiles` - to mechanizm zarządzany przez systemd, który automatycznie czyści stare pliki w katalogach tymczasowych starsze niż X dni. Katalog `/tmp` jest katalogiem otwartym dla wszystkich użytkowników, posiada uprawnienia pozwalające wszystkim użytkownikom na tworzenie plików, ponieważ wiele aplikacji oraz procesów systemowych musi mieć możliwość zapisywania danych tymczasowych niezależnie od kontekstu użytkownika. Dlatego też `/tmp` wymaga odpowiednich uprawnień i mechanizmów ochronnych (Sticky bit).
-W niektórych systemach Linux dodatkową warstwę bezpieczeństwa zapewniają mechanizmy Mandatory Access Control (MAC), wprowadzając dodatkowe zasady określające, jakie operacje mogą wykonywać procesy w systemie. 
+## Czym są katalogi tymczasowe i po co istnieją 
+Programy i system często potrzebują tworzyć pliki tymczasowe, np:
+- sesje użytkowników, 
+- cache - tymczasowe dane, które mogą być odtworzone,
+- locki - informacje, że jakiś program działa, żeby nie uruchomić go drugi raz, 
+- sockety, FIFO, named pipes - pliki służące do komunikacji między procesami. 
+Te pliki nie muszą być przechowywane na stałe, po zrestartowaniu systemy nie są już potrzebne. Właśnie do tego służą katalogi tymczasowe:
+- `/tmp`,
+- `/var/tmp`,
+- `/dev/shm`.
 
-## Wykonane kroki
-- sprawdzono czy `tmpfs` jest włączone w systemie poleceniem: `mount | grep /tmp`,
-- sprawdzono dane dla zamontowanego katalogu poleceniem: `df -hT /tmp`,
-- sprawdzono automatyczne czyszczenie za pomocą poleceń: 
-	- `systemd-analyze cat-config systemd-tmpfiles | grep /tmp` (polecenie nie zwróciło wyniku w analizowanym systemie),
-	- `cat /usr/lib/tmpfiles.d/tmp.conf`,
-	- `cat /etc/tmpfiles.d/tmp.conf` (plik nie istnieje w analizowanym systemie),
-- sprawdzono czy tmpfiles działa za pomocą polecenia: `systemctl status systemd-tmpfiles-clean.service`,
-- wymuszono czyszczenie katalogu `/tmp` za pomocą polecenia: `sudo systemd-tmpfiles --clean`,
-- sprawdzono czy sticky bit istnieje dla katalogu `/tmp` za pomocą polecenia `ls -ld /tmp`,
-- sprawdzono czy w systemie jest SELinux za pomocą polecenia: `ls -Z`,
-- sprawdzono czy w systemie jest AppArmor za pomocą polecenia: `aa-status`.
+## Czym się różnią katalogi `/tmp`, `/var/tmp` i `/dev/shm`
 
-## Obserwacje
-- W analizowanym systemie Kali Linux `/tmp` jest zamontowany jako system plików `tmpfs`, co oznacza, że pliki tymczasowe przechowywane są w pamięci RAM i znikają po restarcie systemu. Dodatkowo system wykorzystuje mechanizm systemd-tmpfiles, którego konfiguracja znajduje się w katalogu `/usr/lib/tmpfiles.d/tmp.conf`. Mechanizm ten usuwa stare pliki w trakcie działania systemu, bez konieczności restartu. W pliku tmp.conf znajdują się reguły określające czas przechowywania plików tymczasowych. W systemie zdefiniowano m.in. następujące zasady:
-	- pliki w `/tmp` starsze niż 10 dni mogą zostać automatycznie usunięte, 
-	- pliki w `/var/tmp` starsze niż 30 dni mogą zostać usunięte. 
-- sticky bit jest ustawiony dla katalogu /tmp,
-- w systemie nie jest zainstalowany SELinux,
-- w katalogu `/tmp` nie zauważono podejrzanych plików, 
-- w analizowanym momencie większość plików należała do root, 
-- pliki należące do nieuprzywilejowanych użytkowników nie miały uprawnień wykonywalnych, 
-- zauważalna różnica czasu (UTC vs czas lokalny), system zapisuje czasy UTC,
-- wszystkie pliki posiadają datę z dnia bieżącego, nie ma starych plików w katalogu `/tmp`,
-- polecenie: `sudo systemd-tmpfiles --clean` nie wyczyściło plików, które mają dzisiejszą datę. 
+### /tmp
+To katalog przechowujący pliki tymczasowe dla aplikacji i użytkowników. W zależności od konfiguracji może być zlokalizowany na dysku lub w pamięci RAM. Zawartość katalogu `/tmp` może, ale nie musi być usuwana po restarcie systemu - to zależy od konfiguracji systemu (np. tmpfs, systemd-tmpfiles). 
+- Mechanizmy czyszczenia katalogu `/tmp` w Linux
+W nowoczesnych systemach Linux występują dwa mechanizmy czyszczenia katalogu `/tmp`:
+	- `tmpfs` - tmpfs to wirtualny system plików, który przechowuje dane w pamięci RAM, a nie na dysku. Oznacza to, że pliki `tmpfs` znikają po restarcie systemu (bo RAM się czyści). `/tmp` może być włączony jako tmpfs w `/etc/fstab` np.:   
+		`tmpfs /tmp tmpfs defaults,notime,mode=1777 0  0`   
+	Daje to szybki dostęp i automatyczne czyszczenie po restarcie. Sprawdzenie, czy `/tmp` jest w tmpfs:
+		- `mount | grep /tmp` - pokaże wszystkie zamontowane systemy plików i ich opcje. Jeśli `/tmp` jest `tmpfs`, to można zobaczyć zapis:
+		`tmpfs on /tmp type tmpfs (rw,nosuid,nodev)`
+		Jeśli nic nie ma, `/tmp` jest zwykłym katalogiem na dysku np: ext4.
+		- `df -hT /tmp`
+	- `systemd-tmpfiles` to mechanizm zarządzany przez systemd, który automatycznie czyści stare pliki w katalogach tymczasowych. Konfiguracja znajduje się w plikach:
+		- `/etc/tmpfiles.d/*.conf` - stawienia globalne, miejsce, w którym można samodzielnie stworzyć reguły, które nadpiszą domyślne ustawienia,
+		- `/usr/lib/tmpfiles.d/*.conf` - ustawienia domyślne, dostarczane przez dystrybutora (nie należy go modyfikować).  
+		Przykład:   
+		Tworzymy plik o nazwie `/etc/tmpfiles.d/tmp.conf` a w nim ustawiamy regułę by pliki `/tmp` były czyszczone co 7 dni:
+			`q /tmp 1777 root root 7d`
+		Sprawdzanie czy tmpfiles działa w systemie:    
+			`systemctl status systemd-tmpfiles-clean.timer`   
+		To pozwala zobaczyć, kiedy ostatnio działało i czy jest aktywne. Aby wymusić czyszczenie należy użyć polecenia:
+			`sudo systemd-tmpfiles --clean`  
+`/tmp` jest katalogiem otwartym dla wszystkich użytkowników, dlatego wymaga odpowiednich uprawnień i mechanizmów ochronnych 1777 (sticky bit). 
+
+### /var/tmp
+Przechowuje pliki tymczasowe, które muszą przetrwać restart (np. dane tymczasowe aplikacji, które są odtwarzane po restarcie, ale lepiej ich nie tracić). Katalog `/var/tmp` znajduje się na dysku (nie w pamięci RAM). Czyszczenie katalogu odbywa się wyłącznie za pomocą `systemd-tmpfiles`. Można do pliku `/etc/tmpfiles.d/tmp.conf` dodać regułę dla czyszczenia katalogu `/var/tmp`, analogicznie jak dla katalogu `/tmp`. Uprawnienia katalogu to `drwxrwxrwt` lub `rwxrwxr-x` (często bez sticky bit, on nie jest tu potrzebny ponieważ `/var/tmp` nie jest tak intensywnie współdzielony między użytkownikami jak `/tmp`).
+
+### /dev/shm
+Jest to pamięć współdzielona (shared memory) - mechanizm do szybkiej wymiany danych między procesami. Pliki znajdują się wyłącznie w pamięci RAM, nie na dysku. Czyści się automatycznie podczas restartu, jednak można dodać dla niego regułę, podobnie jak dla `/tmp` i `/var/tmp` w pliku `/etc/tmpfiles.d/tmp.conf`. Uprawnienia tego katalogu to `rwxrwxrwt`, choć sticky bit nie jest wymagany, ponieważ cała zawartość katalogu znika po restarcie. To częsty wektor ataków, ponieważ admini często o nim zapominają, każdy ma prawo tworzyć i usuwać w nim pliki, a jeśli system nie ma `tmpfs` na `/tmp`, to `/dev/shm` jest jedynym katalogiem w RAM, gdzie można szybko utworzyć plik bez zapisu na dysk.
+
+## SELinux i AppArmor
+W niektórych systemach Linux dodatkową warstwę bezpieczeństwa zapewniają mechanizmy 'Mandatory Access Control' (MAC), takie jak SELinux lub AppArmor. To mechanizmy kontroli dostępu (nie tylko uprawnienia `rwx`). Mogą ograniczyć, które procesy mogą tworzyć/wykonywać pliki w `/tmp`.
+- Rodzaje mechanizmów: 
+	- SELinux (Security-Enhanced Linux) - jest systemem kontroli dostępu rozwijanym przez NSA i używanym głównie w systemach rodziny Red Hat (RHEL, Fedora, CentOS). W SELinux każdy plik i proces posiada specjalny kontekst bezpieczeństwa, który określa, jakie operacje są dozwolone. Konteksty te można wyświetlić poleceniem:  
+		`ls -Z`   
+	jeśli SELinux jest aktywny, obok standardowych uprawnień pojawia się dodatkowa kolumna z kontekstem bezpieczeństwa. 
+	- AppArmor - w systemach takich jak Debian, Ubuntu zamiast SELinux często używany jest mechanizm AppArmor. AppArmor również ogranicza możliwości procesów, ale robi to poprzez profile przypisane do konkretnych aplikacji. Profile te określają, do jakich plików lub katalogów dana aplikacja może mieć dostęp. 
+- W trakcie analiz incydentów, warto sprawdzić czy usługa SELinux lub AppArmor są uruchomione w systemie, ponieważ malware czasami próbuje je wyłączyć. 
+	- Polecenia sprawdzające status AppArmor:
+		- `aa-status` - to polecenie pokazuje czy moduł jest załadowany, czy są profile oraz w jakim trybie są (enforce lub complain),
+		- `systemctl status apparmor` - polecenie sprawdza czy usługa jest włączona, czy jest uruchomiona oraz czy startuje automatycznie przy boot.
+	- Polecenia sprawdzające status SELinux:
+		- `getenforce` - szybkie sprawdzenie dające wynik Enforcing, Permissive lub Disabled,
+		- `sestatus` - pełny status, pokazuje więcej informacji, np.:
+			- SELinux status: enabled,
+			- Current mode: enforcing,
+			- Policy: targeted.
+
+## Bezpieczne czyszczenie katalogu /tmp
+- restart systemu - to działa w przypadku analizowanego systemu Kali,
+- sudo rm -rf /tmp/* - to ręczne czyszczenie, które trzeba przeprowadzić bardzo ostrożnie i najlepiej w czasie, gdy system nie wykonuje krytycznych operacji. Ważna uwaga: niektóre aplikacje mogą trzymać otwarte deskryptory plików w /tmp - ręczne czyszczenie może powodować błędy aplikacji. UWAGA: polecenie to nie usuwa ukrytych plików,
+- usuwanie plików starszych niż X dni, przy pomocy systemd-tmpfiles,
+
+## Czego nie robić
+- NIE usuwać katalogu /tmp,
+- NIE czyścić katalogu podczas instalacji lub aktualizacji. 
 
 ## Wnioski bezpieczeństwa
-- Na podstawie obserwowanych atrybutów plików i kontekstu czasowego nie stwierdzono oznak złośliwej aktywności. Zachowania zgodne z normalną pracą systemu,
-- w analizowanym systemie funkcjonuje `tmpfs` oraz automatyczne czyszczenie plików starszych niż 10 dni za pomocą systemd-tmpfiles,
-- sticky bit ustawiony dla katalogu `/tmp` zapewnia, że nikt nie może usuwać plików innych użytkowników, 
-- ze względu na otwarty charakter katalogu `/tmp`, w którym pod kątem potencjalnych oznak nadużyć lub złośliwej aktywności. Przykładowe polecenia:
-	- `find /tmp -type f -mtime +7 -ls` - znajduje pliki, które nie były modyfikowane przez 7 dni, 
-	- `lsof +D /tmp` - wyświetla listę plików aktualnie otwartych przez procesy w systemie, 
-- SOC powinien zawsze uwzględniać UTC przy analizie plików tymczasowych, żeby timeline był spójny,
-- mechanizmy takie jak SELinux lub AppArmor mogą ograniczać sposób, w jaki aplikacje korzystają z katalogów tymczasowych takich jak `/tmp`. Dzięki temu nawet jeśli złośliwe oprogramowanie zostanie uruchomione, jego możliwości działania mogą być częściowo ograniczone przez politykę bezpieczeństwa systemu. W analizowanym systemie SELinux nie jest zainstalowany, a AppArmor nie był aktywny lub nie był używany przez system, dlatego żaden z nich nie wpływał na zachowanie katalogu `/tmp` w trakcie przeprowadzanego laboratorium,
-- nie należy usuwać katalogu `/tmp`, ponieważ jest on wymagany przez wiele aplikacji oraz procesów systemowych, 
-- ręczne czyszczenie katalogu `/tmp` podczas działania systemu może powodować problemy z aplikacjami korzystającymi z plików tymczasowych,
-- otwarty charakter katalogu `/tmp` sprawia, że jest on często wykorzystywany przez aplikacje oraz procesy systemowe do zapisu danych tymczasowych. W przypadku kompromitacji systemu katalog ten może być również używany przez złośliwe oprogramowanie do przechowywania plików roboczych lub tymczasowych komponentów malware. 
+- `tmpfs` - ma kilka zalet:
+	- malware trudniej zostawić trwałe pliki,
+	- stare pliki tymczasowe nie zalegają w systemie,
+	- zmniejsza się powierzchnia ataku.
+- `systemd-tmpfiles` jest szczególnie pomocne, gdy system działa wiele dni bez restartu. Bez ponownego uruchomienia przy ustawieniu wyłącznie tmpfs katalog długo by nie był czyszczony. `Tmpfiles` usuwa pliki starsze niż X dni, nawet gdy nie następuje restart systemu.
+- ustawienie `sticky bit` dla katalogu `/tmp` zapewnia, że nikt nie może ingerować w pliki innego użytkownika, a to zmniejsza wektor ataków. Eliminuje to np. modyfikację pliku innego użytkownika umieszczając w nim złośliwe oprogramowanie lub usuwanie pliku, który jest w danej chwili używany przez aplikację.
+- polecenie `sudo systemd-tmpfiles --clean` nie usuwa wszystkich plików ponieważ:
+	- `systemd-tmpfiles` działa na podstawie wieku plików (mtime), a nie ich liczby czy rozmiaru, 
+	- jeśli plik ma datę modyfikacji z dzisiaj, nie zostanie usunięty,
+	- to jest celowe - system nie kasuje 'aktywnego' pliku w trakcie używania. 
+- Ze względu na otwarty charakter katalogów `/tmp`, `/var/tmp`, `/dev/shm`, w których każdy użytkownik systemu może tworzyć pliki, warto regularnie monitorować ich zawartość pod kątem potencjalnych oznak nadużyć lub złośliwej aktywności. Jednym z prostych sposobów wstępnej analizy jest wyszukiwanie plików, które pozostają w katalogu dłużej niż powinny. Przykładowe polecenia:
+	- `find /tmp -type f -mtime +7 -ls`
+	- `lsof +D /tmp` - polecenie lsof (List Open Files) wyświetla listę plików aktualnie otwartych przez procesy w systemie, opcja +D `/tmp` ogranicza wynik do katalogu `/tmp`. Może to pomóc zidentyfikować aplikacje lub procesy, które aktywnie korzystają z plików tymczasowych. W kontekście analizy bezpieczeństwa pozwala to sprawdzić, czy nieznany proces nie wykorzystuje katalogu /tmp do uruchamiania lub przechowywania plików tymczasowych. 
+- Regularna analiza zawartości katalogów `/tmp`, `/var/tmp`, `/dev/shm` jest jedną z podstawowych technik wstępnej diagnostyki systemu oraz elementem szybkiego triage w pracy analityka SOC. 
+- SOC powinien zawsze uwzględnić czas UTC przy analizie plików tymczasowych, żeby timeline był spójny. 
+- Mechanizmy takie jak SELinux lub AppArmor mogą ograniczać sposób, w jaki aplikacje korzystają z katalogów tymczasowych takich jak `/tmp`. Dzięki temu nawet jeśli złośliwe oprogramowanie zostanie uruchomione, to jego możliwości działania mogą być częściowo ograniczone przez politykę bezpieczeństwa systemu. W analizowanym systemie Kali Linux SELinux nie był zainstalowany, a AppArmor był wyłączony, dlatego żaden z nich nie wpływał na zachowanie katalogu `/tmp` w trakcie przeprowadzonego laboratorium.
+- Katalogi `/tmp`, `/var/tmp`, `/dev/shm` są często wykorzystywane przez złośliwe oprogramowanie jako miejsce przechowywania tymczasowych plików. Wynika to z faktu, że katalogi są zapisywalne dla wszystkich użytkowników systemu. Atakujący mogą zapisywać w katalogach tych pliki wykonywalne lub tzw. loadery, które następnie pobierają właściwe złośliwe oprogramowanie i zapisują je w innych lokalizacjach systemu.
+
 
