@@ -1,10 +1,10 @@
 # Filesystem Structure
 
 ## Cel 
-Zrozumieć jak wygląda system plików w systemach Linux
+Zrozumieć, jak wygląda system plików w systemie Linux.
 
 ## Czym jest FHS 
-System plików, na którym opiera się Linux nosi nazwę FHS (File Hierarchy Standard). Jest to standard, który określa, który katalog do czego służy, dzięki czemu niezależnie od dystrybucji Linuxa (Kali, Ubuntu, Debian, RHEL, Arch) wiadomo, że:
+System plików, na którym opiera się Linux, nosi nazwę FHS (File Hierarchy Standard). Jest to standard, który określa, który katalog do czego służy, dzięki czemu niezależnie od dystrybucji Linuxa (Kali, Ubuntu, Debian, RHEL, Arch) wiadomo, że:
 - logi są w `/var/log`,
 - konfiguracja systemu jest w `/etc`,
 - programy użytkownika są w `/usr/bin`.
@@ -16,19 +16,22 @@ Wszystkie te foldery znajdują się w głównym folderze systemu `root` (/).
 - `/sbin` - programy dla administratora (`fdisk`, `mount`, `reboot`),
 - `/etc` - konfiguracja systemu i usług (`passwd`, `shadow`, `sudoers`),
 - `/var` - zmienne dane - logi, maile, cache,
-- `/tmp` - pliki tymczasowe (czyszczone przy restarcie),
+- `/tmp` - pliki tymczasowe (czyszczone przy restarcie jeśli jest tmpfs),
 - `/home` - katalogi domowe zwykłych użytkowników, 
 - `/root` - katalog domowy roota, 
 - `/boot` - pliki potrzebne do uruchomienia systemu (jądro, GRUB),
 - `/dev` - pliki urządzeń (dyski, terminale),
-- `/proc` - wirtualny system plików - informacje o procesach i sprzęcie, 
-- `/sys` - wirtualny system plików - interakcja z jądrem i urządzeniami, 
+- `/proc` - wirtualny system plików w pamięci (procfs) - informacje o procesach i sprzęcie, 
+- `/sys` - wirtualny system plików w pamięci (sysfs) - interakcja z jądrem i urządzeniami, to drugi główny katalog programów po `/bin`, 
 - `/usr` - programy, biblioteki, dokumentacja użytkowników, 
 - `/lib` - biblioteki współdzielone dla programów z `/bin` i `/sbin`,
 - `/opt` - dodatkowe pakiety (oprogramowanie firm trzecich),
 - `/mnt` - tymczasowe montowanie systemów plików, 
 - `/media` - automatyczne montowanie nośników (pendrive, CD),
-- `/srv` - dane serwisów (www, ftp).  
+- `/srv` - dane usług (www, ftp), 
+- `/run` - dane procesów od momentu startu,
+- `/var/tmp` - pliki tymczasowe (np. aplikacji), które muszą być odtwarzane po resecie, nie jest czyszczony przy resecie jak `/tmp`, 
+- `/lib64` - w niektórych dystrybucjach istnieje `/lib64`  dla bibliotek 64-bitowych. 
 
 ## Uwaga
 W nowoczesnych dystrybucjach `/bin`, `/sbin`, `/lib`  są często linkami symbolicznymi do odpowiednich katalogów  w `/usr` (np. `/bin` -> `/usr/bin`).
