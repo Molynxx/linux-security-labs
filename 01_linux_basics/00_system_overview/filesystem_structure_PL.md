@@ -1,4 +1,4 @@
-# Filesystem Structure
+# Filesystem_structure
 
 ## Cel 
 Zrozumieć, jak wygląda system plików w systemie Linux.
@@ -22,15 +22,15 @@ Wszystkie te foldery znajdują się w głównym folderze systemu `root` (/).
 - `/boot` - pliki potrzebne do uruchomienia systemu (jądro, GRUB),
 - `/dev` - pliki urządzeń (dyski, terminale),
 - `/proc` - wirtualny system plików w pamięci (procfs) - informacje o procesach i sprzęcie, 
-- `/sys` - wirtualny system plików w pamięci (sysfs) - interakcja z jądrem i urządzeniami, to drugi główny katalog programów po `/bin`, 
-- `/usr` - programy, biblioteki, dokumentacja użytkowników, 
+- `/sys` - wirtualny system plików w pamięci (sysfs) - interakcja z jądrem i urządzeniami,  
+- `/usr` - programy, biblioteki, dokumentacja użytkowników, to drugi główny katalog programów po `/bin`,
 - `/lib` - biblioteki współdzielone dla programów z `/bin` i `/sbin`,
 - `/opt` - dodatkowe pakiety (oprogramowanie firm trzecich),
 - `/mnt` - tymczasowe montowanie systemów plików, 
 - `/media` - automatyczne montowanie nośników (pendrive, CD),
 - `/srv` - dane usług (www, ftp), 
 - `/run` - dane procesów od momentu startu,
-- `/var/tmp` - pliki tymczasowe (np. aplikacji), które muszą być odtwarzane po resecie, nie jest czyszczony przy resecie jak `/tmp`, 
+- `/var/tmp` - pliki tymczasowe (np. aplikacji), które muszą być odtwarzane po restarcie, nie jest czyszczony przy resecie jak `/tmp`, 
 - `/lib64` - w niektórych dystrybucjach istnieje `/lib64`  dla bibliotek 64-bitowych. 
 
 ## Uwaga
