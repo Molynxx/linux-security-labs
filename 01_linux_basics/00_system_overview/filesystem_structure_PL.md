@@ -23,14 +23,14 @@ Wszystkie te foldery znajdują się w głównym folderze systemu `root` (/).
 - `/dev` - pliki urządzeń (dyski, terminale),
 - `/proc` - wirtualny system plików w pamięci (procfs) - informacje o procesach i sprzęcie, 
 - `/sys` - wirtualny system plików w pamięci (sysfs) - interakcja z jądrem i urządzeniami,  
-- `/usr` - programy, biblioteki, dokumentacja użytkowników, to drugi główny katalog programów po `/bin`,
+- `/usr` - programy, biblioteki, dokumentacja użytkowników (drugi główny katalog programów po `/bin`),
 - `/lib` - biblioteki współdzielone dla programów z `/bin` i `/sbin`,
 - `/opt` - dodatkowe pakiety (oprogramowanie firm trzecich),
 - `/mnt` - tymczasowe montowanie systemów plików, 
 - `/media` - automatyczne montowanie nośników (pendrive, CD),
 - `/srv` - dane usług (www, ftp), 
-- `/run` - dane procesów od momentu startu,
-- `/var/tmp` - pliki tymczasowe (np. aplikacji), które muszą być odtwarzane po restarcie, nie jest czyszczony przy resecie jak `/tmp`, 
+- `/run` - dane procesów od momentu startu systemu,
+- `/var/tmp` - pliki tymczasowe (np. aplikacji), które muszą być zachowanee po restarcie, nie jest czyszczony przy resecie jak `/tmp`, 
 - `/lib64` - w niektórych dystrybucjach istnieje `/lib64`  dla bibliotek 64-bitowych. 
 
 ## Uwaga
