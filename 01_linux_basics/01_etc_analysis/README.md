@@ -11,4 +11,4 @@ Zrozumienie, jakie pliki konfiguracyjne znajdują się w katalogu `/etc` oraz dl
 ## Dlaczego to ważne (SOC/IR)
 - katalog `/etc` zawiera pliki określające jak działa system i jakie są jego polityki bezpieczeństwa,
 - wszelkie zmiany w `login.defs`, `default/useradd`, `security` mogą wskazywać na potencjalną eskalację uprawnień lub backdoor, 
-- bez znajomości `/etc` trudno jest analizować logi, procesy lun przeprowadzać forensics.
+- bez znajomości `/etc` trudno jest analizować logi, procesy lub przeprowadzać forensics.
