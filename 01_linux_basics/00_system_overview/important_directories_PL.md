@@ -8,7 +8,7 @@ Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi 
 	- dlaczego jest ważny: ponieważ każda zmiana może oznaczać backdoor lub eskalację uprawnień,
 	- zagrożenia: 
 		- dodanie nowego użytkownika UID 0 - atakujący może dodać nowego użytkownika z uprawnieniami root. W systemie nie powinno być więcej niż jeden root,
-		- modyfikacja `/etc/shadow` - zmiana hasła roota, lun innego użytkownika, atakujący zostawia sobie drogę do ponownego logowania, która może wyglądać w logach zupełnie normalnie,
+		- modyfikacja `/etc/shadow` - zmiana hasła roota lub innego użytkownika, atakujący zostawia sobie drogę do ponownego logowania, która może wyglądać w logach zupełnie normalnie,
 		- modyfikacja `/etc/sudoers` - przyznanie uprawnień sudo. Atakujący może ustawić sudo dla skompromitowanego lub stworzonego przez siebie konta, uzyskując pełne uprawnienie systemowe,
 		- modyfikacja `/etc/ssh/sshd_config` - włączenie logowania rootem lub hasłami. Zwykle w ustawieniach jest wyłączona opcja logowania hasłem dla roota, często też root ma wyłączony dostęp przez SSH. Jeśli atakujący zdobędzie dostęp do root, może włączyć te opcje by logować się zdalnie, 
 		- modyfikacja plików w `/etc/pam.d/` - osłabienie polityki bezpieczeństwa, to bardzo szeroki wektor zagrożeń związanych z uwierzytelnianiem, autoryzacją oraz bezpieczeństwem sesji użytkownika. 
@@ -18,7 +18,7 @@ Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi 
 		- `05_pam_basics/` - analiza pam.d i modułów PAM,
 		- `09_basic_security_checks/` - skrypty do audytu.
 - `/var/log` - logi systemowe: 
-	- dlaczego jest ważny: ponieważ to jest źródło informacji o zdarzeniach jakie miały miejsce w systemie - logowania, sudo, PAM, SSH, ataki. 
+	- dlaczego jest ważny: ponieważ to jest źródło informacji o zdarzeniach, jakie miały miejsce w systemie - logowania, sudo, PAM, SSH, ataki. 
 	- zagrożenia:
 		- brak logów w danym przedziale czasowym - może oznaczać, że atakujący uzyskał dostęp do pliku i mógł go wyczyścić, by ukryć swoje działania,
 		- zmiana uprawnień do logów (np. `chmod 777 /var/log/auth.log`) - atakujący mógł zmienić uprawnienia pliku by mieć do nich dostęp z wielu kont i za każdym razem ukrywać swoje działania, 
@@ -34,7 +34,7 @@ Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi 
 		- ukrycie plików z dziwnymi nazwami - atakujący tworzy plik o nazwie `...` lub `" "`, które można łatwo przeoczyć, lub plik `-rf`, co może uszkodzić polecenia administratora. 
 		- wykonanie skryptu przez podatną usługę (np. PHP) - serwer www ma podatny skrypt PHP, pozwalający na wykonanie kodu (np. system(), eval()). Atakujący wrzuca do `/tmp` skrypt w bashu, a podatny skrypt go wykona. 
 	- katalog opisany bardziej szczegółowo w repozytorium znajduje się w:
-		- `08_tmp_and_file_location/tmp_analisys`.
+		- `08_tmp_and_file_location/tmp_analysis`.
 	- monitoring:
 		- `ls -la /tmp/` - czy nie ma plików `.sh`, `.py`, `.c` z dziwnymi nazwami, 
 		- `lsof /tmp` - jakie procesy używają plików w `/tmp`.
@@ -42,7 +42,7 @@ Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi 
 	- dlaczego jest ważny: ponieważ katalogi domowe użytkowników to miejsca, gdzie atakujący może zostawić backdoory. 
 	- zagrożenia:
 		- dodanie klucza SSH do `/home/user/authorized_keys` - atakujący może dodać swój klucz do zaufanych uzyskując trwały dostęp, 
-		- modyfikacja `~/.bashrc`, `~/.zdhrc`, `~/.profile` - skrypt uruchamiany przy każdym logowaniu, 
+		- modyfikacja `~/.bashrc`, `~/.zshrc`, `~/.profile` - skrypt uruchamiany przy każdym logowaniu, 
 		- wrzucenie narzędzi do katalogu domowego i ukrycie ich dodając kropkę na początku nazwy, 
 		- kradzież kluczy SSH z `~/.ssh/id_rsa`.
 	- monitoring:
@@ -63,7 +63,7 @@ Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi 
 	- zagrożenia: 
 		- ukryty proces - nie widać go w `ps`, ale w `/proc` jest widoczny, 
 		- LD_PRELOAD ustawiony w zmiennych środowiskowych procesu - ktoś mógł wstrzyknąć bibliotekę, zwłaszcza jeśli sesja nie była chroniona w PAM modułem `pam_env.so`,
-		- proces uruchomiony z podejrzanego katalogu np. `/tmp` - `ps`, `top`, `htop`, `pstree` bazują na tym samym źródłem co `/proc` jednak można je oszukać. Np. `ps` może być podmieniony przez rootkita albo jego wyniki mogą być filtrowane. `/proc`  pokaże prawdę nawet jeśli `ps` kłamie. 
+		- proces uruchomiony z podejrzanego katalogu np. `/tmp` - `ps`, `top`, `htop`, `pstree` bazują na tym samym źródle co `/proc`, są bardziej podatne na oszustwo niż `/proc`. Np. `ps` może być podmieniony przez rootkita albo jego wyniki mogą być filtrowane. `/proc`  pokaże prawdę nawet jeśli `ps` kłamie. 
 	- monitoring:
 		- `ls -la /proc/[0-9]*/exe 2>/dev/null | grep /tmp` - procesy uruchamiane z `/tmp`,
 		- ` grep LD_PRELOAD /proc/*/environ` - szukanie wstrzykniętych bibliotek. 
@@ -72,7 +72,7 @@ Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi 
 	- zagrożenia:
 		- podmiana jądra (vmlinuz) - rootkit na poziomie jądra,
 		- modyfikacja initramfs (Initial RAM filesystem) - backdoor przed systemem plików. initramfs to tymczasowy system plików, który jest ładowany do pamięci RAM razem z jądrem. Zawiera on niezbędne sterowniki i skrypty, które pozwalają na odczytanie właściwego systemu pliku z dysku,
-		- modyfikacja GRUB - dodanie parametru `init=/bin/bash` -> root bez hasła. GRUB (GRand Unified Bootloader) to pierwszy program, który uruchamia się po włączeniu komputera. Jego zadaniem jest załadowanie jądra systemu z dysku do pamięci i przekazania mu kontroli. To on pokazuje meny z wyborem systemów (Linux, Windows).
+		- modyfikacja GRUB - dodanie parametru `init=/bin/bash` -> root bez hasła. GRUB (GRand Unified Bootloader) to pierwszy program, który uruchamia się po włączeniu komputera. Jego zadaniem jest załadowanie jądra systemu z dysku do pamięci i przekazania mu kontroli. To on pokazuje menu z wyborem systemów (Linux, Windows).
 	- monitoring:
 		- `ls -la /boot/` - czy pliki mają normalne daty a nie np. wczorajsze, 
 		- `md5sum /boot/vmlinuz-$(uname -r)` - porównanie z czystą instalacją jeśli to możliwe. 
@@ -92,7 +92,7 @@ Wskazanie, które katalogi są kluczowe dla SOC i jakie zagrożenia się z nimi 
 		- podmiana `ls` - ukrywanie plików,
 		- podmiana `ps` - ukrywanie procesów, 
 		- podmiana `netstat` lub `ss` - ukrywanie połączeń sieciowych, 
-		- podmiana `sshd` - backdoor na poziomie logowania. 
+		- podmiana `/usr/sbin/sshd` - backdoor na poziomie logowania.
 	- monitoring:
 		- `md5sum /bin/ls /bin/ps /usr/bin/netstat` - porównanie z czystą instalacją, 
 		- `rkhunter --check` - automatyczne skanowanie. 
