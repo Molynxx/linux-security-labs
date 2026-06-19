@@ -23,7 +23,7 @@ Wszystkie te foldery znajdują się w głównym folderze systemu `root` (/).
 - `/dev` - pliki urządzeń (dyski, terminale),
 - `/proc` - wirtualny system plików w pamięci (procfs) - informacje o procesach i sprzęcie, 
 - `/sys` - wirtualny system plików w pamięci (sysfs) - interakcja z jądrem i urządzeniami,  
-- `/usr` - programy, biblioteki, dokumentacja użytkowników, to drugi główny katalog programów po `/bin`),
+- `/usr` - programy, biblioteki, dokumentacja użytkowników, to drugi główny katalog programów po `/bin`,
 - `/lib` - biblioteki współdzielone dla programów z `/bin` i `/sbin`,
 - `/opt` - dodatkowe pakiety (oprogramowanie firm trzecich),
 - `/mnt` - tymczasowe montowanie systemów plików, 
