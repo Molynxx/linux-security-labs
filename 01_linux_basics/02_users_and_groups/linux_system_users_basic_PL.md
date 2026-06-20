@@ -1,12 +1,12 @@
 # System Users Basics
 
-## Cel laba
-Celem Laba było zapoznanie się z rodzajami użytkowników systemu Linux w celu lepszego zrozumienia, jak analizować logi (np. /var/log) i identyfikować potencjalne zagrożenia związane z nieautoryzowanym dostępem do systemu.
+## Cel 
+Celem laboratorium było zapoznanie się z rodzajami użytkowników systemu Linux w celu lepszego zrozumienia, jak analizować logi (np. `/var/log`) i identyfikować potencjalne zagrożenia związane z nieautoryzowanym dostępem do systemu.
 
 ## Wykonane kroki
-- Przegląd pliku /etc/passwd w celu:
+- Przegląd pliku `/etc/passwd` w celu:
 	- identyfikacji typów użytkowników,
-	- zrozumienie znaczenia pól takich jak nazwa użytkownika, UID, katalog domowy i powłoka (shell) oraz ich znaczenia z perspektywy bezpieczeństwa.
+	- zrozumienie znaczenia pól, takich jak nazwa użytkownika, UID, katalog domowy i powłoka (shell) oraz ich znaczenia z perspektywy bezpieczeństwa.
 - Analiza polecenia last w celu sprawdzenia historii udanych logowań.
 
 ## Obserwacje
@@ -34,21 +34,20 @@ Celem Laba było zapoznanie się z rodzajami użytkowników systemu Linux w celu
 	- przeanalizować historię logowań.
 - Do analizy:
 	- udanych logowań służy polecenie last, 
-	- nieudanych logowań standardowo służy lastb, jeśli narzędzie jest dostępne w danej dystrybucji.
-
+	- nieudanych logowań standardowo służy lastb, jeśli narzędzie jest dostępne w danej dystrybucji.  
 
 ## Monitorowanie kont interaktywnych (SOC/IR)
 Konta interaktywne stanowią jeden z głównych wektorów ataku w systemach linux. Z perspektywy SOC/IR kluczowe jest nie tylko istnienie kont, ale monitorowanie ich aktywności.
-W środowiskach produkcyjnych SOC tworzy alerty na podstawie
+W środowiskach produkcyjnych SOC tworzy alerty na podstawie:
 - logowań o nietypowych godzinach, 
 - logowań z nowych lub nietypowych adresów IP,
 - logowań na konta, które zwykle nie są używane,
-- sekwencji wielu nieudanych prób logowania zakończonych sukcesem.
+- sekwencji wielu nieudanych prób logowania zakończonych sukcesem.  
 Do lokalnej analizy zdarzeń wykorzystywane są m.in.:
 - last - historia udanych logowań,
-- journalctl -u ssh --since "czas" lub analiza logowań /var/log/auth.log,
+- journalctl -u ssh --since "czas" lub analiza logowań `/var/log/auth.log`,
 - korelacja czasu, użytkownika i źródła logowania.
 
 ## Ograniczenia laba
-- W mojej instalacji Kali Linux plik /var/log/btmp istnieje, jednak dostępne narzędzie last nie potrafi odczytać jego zawartości (błąd formatu). Polecenie lastb nie jest dostępne jako osobne narzędzie. Ogranicza to możliwość analizy nieudanych logowań przy użyciu klasycznych narzędzi. 
+- W mojej instalacji Kali Linux plik `/var/log/btmp` istnieje, jednak dostępne narzędzie last nie potrafi odczytać jego zawartości (błąd formatu). Polecenie lastb nie jest dostępne jako osobne narzędzie. Ogranicza to możliwość analizy nieudanych logowań przy użyciu klasycznych narzędzi. 
 - System był świeżo zainstalowany i nie zawierał danych symulujących rzeczywisty incydent bezpieczeństwa. 
