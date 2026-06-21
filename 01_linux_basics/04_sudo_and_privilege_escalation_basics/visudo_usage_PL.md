@@ -33,6 +33,6 @@ Jest to najbezpieczniejszy program do edycji plików sudoers ponieważ:
 ## Przykład użycia case study
 Administrator chce dodać uprawnienia dla użytkownika `jan` do pliku `/etc/sudoers.d/jan`.
 - krok 1 - otworzenie/utworzenie pliku poleceniem `sudo visudo -f /etc/sudoers.d/jan`,
-- krok 2 - wpisanie treści pliku za pomocą polecenia `jan ALL=(ALL) /usr/bin/apt update`,
+- krok 2 - wpisanie treści pliku `jan ALL=(root) /usr/bin/apt update`,
 - krok 3 - zapis pliku i wyjście,
 - krok 4 - `visudo` sprawdza składnię, jeśli jest poprawna, plik zostaje zapisany. 
