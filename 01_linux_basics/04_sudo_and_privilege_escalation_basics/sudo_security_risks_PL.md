@@ -17,20 +17,25 @@ Poznanie i zrozumienie ryzyka jakie niosą ze sobą zmiany w plikach `sudoers`.
 Opcja ta powoduje, że użytkownik nie musi podawać hasła. W przypadku uzyskania dostępu do sesji, atakujący może wykonywać polecenia jako root. Dlatego istotna jest zasada: NOPASSWD tylko dla specyficznych i bezpiecznych poleceń (np. `/bin/systemctl restart sshd`), nigdy dla `ALL`.
 
 ## sudo w edytorach 
-Edytory takie jak `vim`, `less`, `more` mają funkcję uruchamiania powłoki jeśli program został uruchomiony jako `sudo`. Wystarczy uruchomić edytor jako sudo a potem wpisać polecenie uruchamiające powłokę roota. To bardzo niebezpieczna sytuacja, w której zwykły użytkownik w prosty sposób może eskalować swoje uprawnienia. 
+Edytory takie jak `vim`, `less`, mają funkcję uruchamiania powłoki jeśli program został uruchomiony jako `sudo`. Wystarczy wpisać polecenie `sudo vim`, `sudo less /ścieżka/do pliku`, a po uruchomieniu edytora wpisać `!bash` i uruchomi się powłoka `root`. To bardzo niebezpieczna sytuacja, w której zwykły użytkownik w prosty sposób może eskalować swoje uprawnienia. 
 
 ## sudo na narzędziach do uruchamiania programów (find, tar, awk, git)
 Te narzędzia mają wbudowane mechanizmy do wykonywania innych programów. 
-- `find` - ma opcję `exec` która wykonuje dowolne polecenie dla każdego znalezionego pliku.   
-- `tar` - opcje `--checkpoint` i `--checkpoint-action` pozwalają wykonać dowolne polecenie podczas tworzenia archiwum.  
-- `awk` ma funkcję `system()` - może wykonać dowolne polecenie systemowe. 
-- `git` - może uruchamiać zewnętrzne programy przez `git help` lub `git --exec-path`.
+- `find` - ma opcję `exec` która wykonuje dowolne polecenie dla każdego znalezionego pliku. Przykład:
+	- `sudo find / -exec /bin/bash \; -quit`   
+- `tar` - opcje `--checkpoint` i `--checkpoint-action` pozwalają wykonać dowolne polecenie podczas tworzenia archiwum. Przykład:
+	- `sudo tar cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/bash` 
+- `awk`, `git` i inne:
+	- `awk` ma funkcję `system()` - może wykonać dowolne polecenie systemowe. 
+	- `git` - może uruchamiać zewnętrzne programy przez `git help` lub `git --exec-path`.
 
 ## sudo -s i sudo -i
 To także istotny problem z nadawaniem uprawnień sudo. Teoretycznie można dać `sudo` użytkownikowi ale zakazać mu wykonania czegoś. Jednak w przypadku zakazu zmiany powłoki, czyli wpisania ograniczenia `/bin/bash` w `sudoers`, użytkownik nadal ma możliwości zmiany powłoki za pomocą poleceń:
 - `sudo -s` - uruchamia powłokę jako root, zachowując część środowiska użytkownika, 
 - `sudo -i` - symuluje pełne logowanie jako root (ładuje profile roota).
-UWAGA: zamiast wpisywać całą listę zakazów w `sudoers` lepiej dla użytkownika stworzyć plik w `sudoers.d` i tam wpisać pozwolenia.
+Więc jeśli użytkownik ma `ALL` w `sudoers`, może omijając ograniczenia poleceń uruchamiając jedno z powyższych poleceń. UWAGA: zamiast wpisywać całą listę zakazów w `sudoers` lepiej dla użytkownika stworzyć plik w `sudoers.d` i tam wpisać pozwolenia zamiast zakazów. Przykładowo, chcąc zakazać zmiany powłoki, należałoby uwzględnić w zakazie wszystkie sposoby, a wpis musiał by wyglądać tak:  
+- `jan ALL=(ALL) ALL, !/bin/bash, !/bin/sh, !/bin/zsh, !/usr/bin/su`   
+Wpis się robi długi i łatwo przeczyć coś, dając podatność do wykorzystania celem zmiany powłoki. 
 
 ## Środowisko (env_reset, secure_path)
 Ustawienia domyślne programu `sudo` odgrywają równie ważną rolę w bezpieczeństwie systemu:
@@ -41,7 +46,7 @@ Ustawienia domyślne programu `sudo` odgrywają równie ważną rolę w bezpiecz
 Co należy sprawdzać:
 - `kto ma NOPASSWD` - za pomocą poleceń `sudo -l` (dla bieżącego użytkownika), `sudo -l -u nazwa` (dla innych użytkowników),
 - `kto ma pełne ALL` - za pomocą polecenia `sudo -l` (należy szukać wpisów `(ALL) ALL`), 
-- `kto ma sudo na edytorach/narzędziach` - poleceniem `grep -r "vim|less|more|find|tar|awk|git" /etc/sudoers /etc/sudoers.d/`,
+- `kto ma sudo na edytorach/narzędziach` - poleceniem `grep -E "vim|less|more|find|tar|awk|git" /etc/sudoers /etc/sudoers.d/`,
 - `czy secure_path jest ustawione` - poleceniem `sudo grep secure_path /etc/sudoers`,
 - `logi sudo` - `/var/log/auth.log` (wpisy z sudo).
 
