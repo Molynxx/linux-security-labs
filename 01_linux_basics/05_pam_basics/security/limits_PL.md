@@ -8,14 +8,14 @@ Jest to moduł stosowany w typie session, którego zadaniem jest nałożenie lim
 
 ## Pliki konfiguracyjne modułu pam_limits.so
 Główny plik konfiguracyjny znajduje się w `/etc/security/limits.conf`. To właśnie w nim określa się rodzaje zabezpieczeń oraz wartości im przypisanych. Format wpisu w pliku wygląda następująco:    
-		[domain] [type] [item] [value]     
+		`[domain] [type] [item] [value]   `  
 gdzie:  
 Domain - użytkownik, grupa (`@group`), wildcard (`*`),  
 Type - `soft` (ostrzeżenie), `hard` (maksymalny limit), `-` (oba),  
 Item - `core`, `nproc`, `nofile`, `memlock`, `as`, `cpu`, itd,  
 Value - wartość.   
 
-Poza plikiem głównym można konfigurować także pliki dodatkowe jeśli jest potrzeba np. zrobienia wyjątków dla użytkownika/grupy. Te dodatkowe pliki znajdują się w lokalizacji `/etc/security/limits.d/*conf`. Format zapisu jest w nich taki sam jak w pliku głównym. Po co istnieją - ponieważ nie trzeba mieszać w jednym pliku limitów dla rożnych aplikacji. Jest to ważne ze względu na czytelność plików, mamy plik `/etc/security/limits.conf` z ustawieniami globalnymi dla wszystkich, a gdy potrzebujemy np. dla danej aplikacji zmienić wartości robimy to w odpowiednio nazwanym pliku w `/etc/security/limits.d/`. Taki układ znacznie ułatwia audyt i porządkuje całą konfiguracje w sposób czytelny i łatwy do zmiany. 
+Poza plikiem głównym można konfigurować także pliki dodatkowe jeśli jest potrzeba np. zrobienia wyjątków dla użytkownika/grupy. Te dodatkowe pliki znajdują się w lokalizacji `/etc/security/limits.d/*conf`. Format zapisu jest w nich taki sam jak w pliku głównym. Po co istnieją - ponieważ nie trzeba mieszać w jednym pliku limitów dla różnych aplikacji. Jest to ważne ze względu na czytelność plików, mamy plik `/etc/security/limits.conf` z ustawieniami globalnymi dla wszystkich, a gdy potrzebujemy np. dla danej aplikacji zmienić wartości robimy to w odpowiednio nazwanym pliku w `/etc/security/limits.d/`. Taki układ znacznie ułatwia audyt i porządkuje całą konfigurację w sposób czytelny i łatwy do zmiany. 
 Jak to działa: 
 - najpierw czytany jest `/etc/security/limits.conf`,
 - następnie wczytywane są wszystkie pliki .conf z katalogu `/etc/security/limits.d` - w kolejności alfabetycznej, 
@@ -68,5 +68,5 @@ Dodatkowe informacje:
 Analiza:  
 - anna jak wszyscy ma ustawiony nproc na wartość 150 (hard), ponieważ jednak należy do grupy developers, a wpis dotyczy tego samego typu (hard) oraz tego samego item, ustawienie to zostaje nadpisane przez ustawienia dla grupy developers, do której użytkownik anna należy, dlatego też obowiązujący limit nproc dla anna wynosi 2048,
 - maksymalny limit nofile dla użytkownika student to 2048, ponieważ wpis dla tego użytkownika nadpisuje wcześniejszy wpis dla wszystkich (ten sam typ i item),
-- maksymalny limit nofile dla użytkownika devops wynosi 32768, wpis dla grupy nadpisuje wartość dla wszystkich (ten sam typ i item). Jednak ustawienie jest ryzykowne, trudno bowiem wyobrazić sytuację, w której taka ilość otwartych plików była by konieczna. W przypadku kompromitacji konta, atakujący może otworzyć ponad 30 tysięcy gniazd sieciowych, powodując DoS dla usług sieciowych. Zalecane jest zmniejszenie wartości tej opcji do max 4096. 
+- maksymalny limit nofile dla użytkownika devops wynosi 32768, wpis dla grupy nadpisuje wartość dla wszystkich (ten sam typ i item). Jednak ustawienie jest ryzykowne, trudno bowiem wyobrazić sytuację, w której taka ilość otwartych plików byłaby konieczna. W przypadku kompromitacji konta, atakujący może otworzyć ponad 30 tysięcy gniazd sieciowych, powodując DoS dla usług sieciowych. Zalecane jest zmniejszenie wartości tej opcji do max 4096. 
 - limit core dla root jest w typie soft, co oznacza, że może root może go podwyższyć (np. ulimit -c unlimited). To nie jest bezpieczne ustawienie, w systemach produkcyjnych celem uniknięcia core dump należy użyć dla core typu hard i wartości 0, aby całkowicie wyłączyć core dump.
