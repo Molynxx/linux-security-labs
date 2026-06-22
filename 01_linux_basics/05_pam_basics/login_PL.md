@@ -62,7 +62,7 @@ Kolejności modułów w obrębie jednego typu ma ogromne znaczenie.
 - `moduły typu auth` - tu znajdują się moduły wprowadzające opóźnienia po nieudanych próbach, moduły pobierające dane uwierzytelniające, moduły zliczające ilość nieudanych prób.   
 - `moduły typu account` - tym odpowiada za autoryzację, więc znajdują się tutaj moduły sprawdzające czy użytkownik może się zalogować, jako pierwszy z flagą requisite jest zalecany moduł `pam_nologin.so` - który sprawdza czy system nie jest w trakcie trwania prac serwisowych. Następnie sprawdzane są dane z modułów, które brały udział w uwierzytelnieniu oraz moduły sprawdzające czy konto nie jest zablokowane w systemie,
 - `moduły typu session` odpowiadające za:
-	- ustalenie kontekstu bezpieczeństwa `pam_SELinux.so`,
+	- ustalenie kontekstu bezpieczeństwa `pam_selinux.so`,
 	- ustawienie środowiska `pam_env.so`,
 	- ustawienie limitów `pam_limits.so`,
 	- ustawienie UID sesji `pam_loginuid.so`,
