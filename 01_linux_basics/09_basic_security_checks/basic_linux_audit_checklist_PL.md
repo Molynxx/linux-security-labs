@@ -136,7 +136,7 @@ Cel: Szybka ocena stanu bezpieczeństwa systemu Linux. Lista poleceń i miejsc d
   - Prawidłowy wynik: Tylko interfejsy, które powinny istnieć (np. `eth0`, `lo`).
 
 - Polecenie: `lsof -i`
-  - Co sprawdza: Otworzone pliki związane z siecią (gniazda).
+  - Co sprawdza: Otwarte pliki związane z siecią (gniazda).
   - Zagrożenia: Procesy korzystające z sieci, których się nie spodziewamy.
   - Prawidłowy wynik: Znane procesy z połączeniami sieciowymi.
 
