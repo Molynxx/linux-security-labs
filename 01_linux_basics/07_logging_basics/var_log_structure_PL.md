@@ -52,7 +52,7 @@ Analiza:
 - atak się nie powiódł, nie ma żadnego wpisu zawierającego Accepted password for root from 45.33.22.11,
 - o 10:05:01 logowanie udane z lokalnego IP, najprawdopodobniej logowanie admina,
 - nieudane próby wpisania hasła występowały w odstępie 2 sekund, w związku z tym:
-	- nie został ustawiony poprawnie moduł `pam_faildelay.so`, który ma za zadnie wprowadzać opóźnienie po nieudanym logowaniu lub
+	- nie został ustawiony poprawnie moduł `pam_faildelay.so`, który ma za zadanie wprowadzać opóźnienie po nieudanym logowaniu lub
 	- czas opóźnienia w tym module jest zbyt krótki,
 - 150 prób logowania świadczy o braku właściwej konfiguracji modułu `pam_faillock.so`. Moduł nie jest poprawnie ustawiony w PAM lub nie wykorzystuje wszystkich trybów, koniecznych do ograniczenia zbyt wielu nieudanych prób. Moduł ten działa w 3 trybach zależnie od konfiguracji w typie `auth`:
 	- preauth - ma za zadanie sprawdzać licznik nieudanych prób, 
