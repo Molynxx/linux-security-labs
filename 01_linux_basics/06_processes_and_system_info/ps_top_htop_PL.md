@@ -7,23 +7,46 @@ Zrozumienie sposobów monitorowania procesów w systemie.
 Wypisuje listę procesów w danym momencie - to szybki podgląd, bez odświeżania.   
 Podstawowe opcje:
 - `ps aux` - wyświetla wszystkie procesy, niezależnie od terminala, w czytelnym formacie. To zwykle pierwszy krok, by zobaczyć co aktualnie działa.   
+	Wyjaśnienie:
+	- `a` - wszystkie procesy z terminalami (ale nie tylko),
+	- `u` - format czytelny dla użytkownika (pokazuje USER, PID, %CPU, %MEM, VSZ, RSS, TTY, STAT, START, TIME, COMMAND),
+	- `x` - procesy bez terminala (demony, procesy systemowe).
 - `ps auxf` - wyświetla drzewo procesów (kto kogo uruchomił) - za pomocą tego polecenia można sprawdzić czy jakiś podejrzany proces ma podejrzanego rodzica, 
 - `ps -eo pid,ppid,user,cmd,%cpu,%mem --sort=-%cpu` - format niestandardowy, sortowanie po CPU (malejąco). Umożliwia znalezienie 'winowajcy' gdy system działa wolno,
 - `ps -u root` - wyświetla tyko procesy użytkownika root, czy ma uruchomiony jako dziecko jakiś podejrzany proces, 
-- `ps --ppid 2` - wyświetla procesy, których rodzic ma PID 2 (kworker). Pomaga w sprawdzeniu, czy ktoś nie podpiął się pod fałszywy `kworker`.   
-Przykład:
-- `ps aux | grep -E "nc|bash|python|perl|/tmp"` - polecenie to szuka podejrzanych procesów (revers shelle często używają `nc`, `bash` z podejrzanym rodzicem. skrypty z `/tmp`. 
+- `ps --ppid 2` - wyświetla procesy, których rodzic ma PID 2 (kworker). Pomaga w sprawdzeniu , czy ktoś nie podpiął się pod fałszywy `kworker`.   
+Przykład"
+- `ps aux | grep -E "nc|bash|python|perl|/tmp` - polecenie to szuka podejrzanych procesów (revers shell często używają `nc`, `bash` z podejrzanym rodzicem. skrypty z `/tmp`. 
 
 ## Czym jest kworker
-Kworker to proces systemowy Linuxa, który wykonuje zadania w tle na zlecenie jądra (np. obsługa dysków, sieci, sterowników). Jest też dość częstym wektorem ataków - atakujący podpina swój proces, z nazwą kworker, żeby działać z ukrycia. 
+Kworker to proces systemowy Linuxa, który wykonuje zadania w tle na zlecenie jądra (np. obsługa dysków, sieci, sterowników). Jest też dość częstym wektorem ataków - atakujący podpina się proces, z nazwą kworker, żeby działać z ukrycia. 
 - Jak rozpoznać czy kwoker jest prawdziwy czy podrobiony: 
 	- prawdziwy kworker: należy do roota, mieszka w `/usr/bin` lub `/`, nie obciąża CPU nieustannie, nie tworzy plików w `/tmp`,
 	- fałszywy kworker (malware): może należeć do innego użytkownika (np. nobody, www-data), mieszka w `/tmp` lub `/home`. zużywa CPU, otwiera podejrzane pliki. 
 - jak rozpoznać (polecenia):
 	- `ps aux | grep kworker |grep -v root` - sprawdzenie właściciela, powinien być to root, jeśli to polecenie wyświetli cokolwiek - czerwona flaga,  
+		- wyjaśnienie:
+			- `ps aux` - wyświetla listę wszystkich procesów (użytkownik, CPU, pamięć, polecenie)
+			- `|` - przekazuje wynik do następnego polecenia, 
+			- `grep kworker` - filtruje i pokazuje tylko linie zawierające kworker,
+			- `|` - przekazuje wynik do następnego polecenia, 
+			- `grep -v root` - filtruje przeciwnie, (-v) pokazuje linie które NIE zawierają root.
 	- `for pid in $(pgrep -f kworker); do echo "PID $pid:"; ls -la /proc/$pid/exe 2>/dev/null; done` - sprawdzenie skąd działają kworkery, ścieżka powinna być systemowa, jeśli ścieżka wskazuje na `/tmp`, `/home` - czerwona flaga,
+		- wyjaśnienie:
+			-`for pid in $(...)` - pętla - wykonuje coś dla każdego znalezionego PID,
+			- `pgrep -f kworker` - znajduje wszystkie PID procesów z "kworker" w nazwie, 
+			- `do cheo "PID $pid:"` - wypisuje numer PID, 
+			- `ls -la /proc/%pid/exe` - sprawdza ścieżkę dla danego PID,
+			- `2>/dev/null` - ukrywa błędy (gdyby nie było takiego procesu),
+			- `done` - koniec pętli.
 	- `top -b -n 1 | grep kworker | awk '{print$9}'` - wyświetla % CPU dla każdego kworkera. jeśli ciągnie powyżej 50% - jest to podejrzane.
-		
+		- wyjaśnienie:
+			- `top -b -n 1` - uruchamia `top` w trybie wsadowym (-b) tylko jedną iterację (-n 1),
+			- `|` - przekazuje wynik do kolejnego polecenia, 
+			- `grep kworker` - filtruje po nazwie "kworker",
+			- `|` - przekazuje wynik do kolejnego polecenia,  
+			- `awk '{print$9}'` - wycina 9 kolumnę (w `top` to kolumna z użyciem CPU).
+
 ## top
 To program do monitorowania procesów w czasie rzeczywistym. Pokazuje, co się dzieje w systemie "na żywo" - które procesy jedzą CPU, pamięć, itp. Poruszanie się po programie:
 - `h` - pomoc, 
@@ -43,7 +66,7 @@ To jest nowsza, bardziej czytelna wersja top (czasem trzeba doinstalować), ma w
 - `F3` - wyszukiwanie procesu po nazwie, 
 - `F4` - filtrowanie (pokaż tylko procesy zawierające tekst),
 - `F5` - widok drzewa (kto kogo uruchomił),
-- `F9` - zabij proces (wybierz PID, potem sygnał 15 TERM lub 9 KILL),
+- `F9` - zabuj proces (wybierz PID, potem sygnał 15 TERM lub 9 KILL),
 - `F10` / `q` - wyjście,
 - `strzałki` - poruszanie się po liście. 
 Z punktu widzenia SOC `htop` jest lepszy ponieważ:
@@ -53,7 +76,7 @@ Z punktu widzenia SOC `htop` jest lepszy ponieważ:
 
 ## Na co zwracać uwagę podczas monitorowania procesów
 - lokalizacja - ` /tmp/plik`, `/dev/shm/x`, `/home/user/.cache/backdoor` - procesy systemowe nie uruchamiają się z tych katalogów. Należy sprawdzić proces za pomocą polecenia `lsof -p PID`, a następnie zabić go, 
-- nazwa - `sshd` ale nie w `/usr/sbin`, `[kworker]` z przecinkami - udaje znany proces, to może być rootkit. Należy sprawdzić proces za pomocą polecenia `ls -la /proc/PID/exe`, które pomoże ustalić prawdziwą ścieżkę, 
+- nazwa - `sshd` ale nie w `/usr/sbin`, `[kworker]` bez nawiasów kwadratowych (prawdziwy ma [kworker/...]) - udaje znany proces, to może być rootkit. Należy sprawdzić proces za pomocą polecenia `ls -la /proc/PID/exe`, które pomoże ustalić prawdziwą ścieżkę, 
 - użytkownik - `nobody` lub `www-data` uruchamia `nc`, `bash` `python` - konto usług nie powinno robić takich rzeczy, należy sprawdzić czy to nie jest backdoor, 
 - rodzic (PPID) - `bash` -> `nc` (jako root) lub `cron` -> `python` -> `nc` - podejrzany łańcuch zdarzeń, (np. czemu cron uruchamia skrypt z `/tmp`). Należy sprawdzić crontab, systemd,
 - CPU - proces z 300% CPU - może być minerem kryptowalut lub pętlą DoS. Należy zabić proces, 
@@ -83,17 +106,17 @@ lrwxrwxrwx 1 root root 0 ... /proc/1234/exe -> /tmp/.hidden/update
 COMMAND  PID   USER  FD   TYPE  DEVICE SIZE/OFF  NODE  NAME  
 update   1234  root  cwd  DIR   8,1       4096   2     /  
 update   1234  root  txt  REG   8,1     123456   10    /tmp/.hidden/update (deleted)  
-update   1234  root   3u  IPv4  56789      0t0   TCP   10.0.0.25:4444->185.130.5.253:12345 (ESTABLISHED)
+update   1234  root   3u  IPv4  56789      0t0   TCP   10.0.0.25:4444->185.130.5.253:12345 (ESTABLISHED)  
 	- sprawdzenie cron roota: sudo crontab -l:  
 0 3 * * * /tmp/.hidden/update  
 ```
 Analiza:
 - Kworker nie jest prawdziwy, ponieważ:
-	- uruchamia się z katalogu /tmp, co nie powinno mieć miejsca. Prawdziwe kworkery startują z katalogów systemowych,
+	- uruchamia się z katalogu `/tmp`, co nie powinno mieć miejsca. Prawdziwe kworkery startują z katalogów systemowych,
 	- zajmuje bardzo dużo CPU, prawdziwe kworkery nie potrzebują dużo CPU,
 	- ma otwarte połączenie reverse shell, 
 	- jest ustawiony w cron na nietypowe godziny (noce, poza godzinami pracy).
-- atakujący w jakiś sposób uzyskał uprawnienia root, umieścił skrypt w katalogu znajdującym się w /`tmp`  z pełnymi prawami dla wszystkich, po czym uruchomił proces, 
+- atakujący w jakiś sposób uzyskał uprawnienia root, umieścił skrypt w katalogu znajdującym się w `/tmp` z pełnymi prawami dla wszystkich, po czym uruchomił proces, 
 - usunięty plik miał za zadanie utrzymać stałe połączenie zdalne (ESTABLISHED). Plik mógł zostać usunięty przez samego atakującego, lub kogoś z IR.  
 
 Zalecanie działania:  
@@ -101,13 +124,13 @@ Zalecanie działania:
 - należy zatrzymać proces poleceniem `kill -9 1234`, 
 - sprawdzić, kto jest właścicielem pliku znajdującego się w `/tmp/.hidden/` - ponieważ plik został usunięty jedynym sposobem jest sprawdzenie tego w audit, pod warunkiem, że został skonfigurowany przed atakiem,
 - w zależności od narzędzi skonfigurowanych w systemie, sprawdzić kiedy plik został utworzony:
-	- za pomocą logów `/var/log/auth.log`, `/var/log/syslog`,
+	- za pomocą logów `/var/log/auth.log`, `/var/log/systemlog`,
 	- za pomocą audit jeśli był skonfigurowany, 
 	- za pomocą historii powłoki poszukując poleceń, które mogły umieścić plik w systemie (wget, curl, nano, touch, chmod),	
 - usunąć pliki z `/tmp` poleceniem `rm /tmp/.hidden/`,
 - usunąć proces z cron, za pomocą `sudo crontab -e`, następnie wybrać wpis, otworzyć i ręcznie usunąć wpis `0 3 * * * /tmp/.hidden/update`,
 - sprawdzić logowania oraz działania wykonane ze skompromitowanego konta od czasu kompromitacji. Jeśli w systemie jest skonfigurowany auditd i sesja ma ustawiony loginuid, wystarczy użyć polecenia `sudo ausearch -ua UID -i`,
-- sprawdzić wszystkie katalogi pod kątem innych złośliwych skryptów (/tmp, /var/tmp, /dev/shm),
+- sprawdzić wszystkie katalogi pod kątem innych złośliwych skryptów (`/tmp`, `/var/tmp`, `/dev/shm`),
 - zmienić hasło dla tego konta i prewencyjnie dla roota, 
 - sprawdzić pozostałe newralgiczne pliki systemu pod kątem modyfikacji od czasu skompromitowania konta (`/etc/sudoers`, `/etc/sudoers.d/`, `/etc/pam.d/`, `/etc/pam/`, systemd, `/etc/passwd`, `/etc/group`, `/home/*/.ssh/authorized_keys`, `/root/.ssh/authorized_keys` `crontab` wszystkich użytkowników, `/etc/ssh/sshd_config`, itp)
 
