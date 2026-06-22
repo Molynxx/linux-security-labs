@@ -24,7 +24,7 @@ Narzędzie to przeszukuje system w czasie rzeczywistym. Jest bardzo dokładny, j
 		- `-size +10M` - wyszukiwanie po rozmiarze pliku, `+10M` - większy niż 10 MB, `-1k` - mniejszy niż 1 kb,
 		- `-perm -4000` - wyszukiwanie po uprawnieniach pliku, `-4000` - SUID, `-perm o+w` - world-writable, 
 		- `-user root` - wyszukiwanie po właścicielu pliku, `-user root` - pliku użytkownika root, `-group adm` - pliki grupy adm. 
-		- `-nouser` - znajduje pliki nie mających właściciela, `-nogroup` - pliki bez grupy,
+		- `-nouser` - znajduje pliki nie mające właściciela, `-nogroup` - pliki bez grupy,
 		- jak łączyć warunki: 
 			- domyślnie `find` łączy warunki logiką `AND`, czyli wszystkie muszą być spełnione. Przykład:
 				- `find /home -type f -size +100M` - znajdź pliki w `/home`, które są zwykłymi plikami i mają rozmiar większy niż 100 MB,
@@ -32,7 +32,7 @@ Narzędzie to przeszukuje system w czasie rzeczywistym. Jest bardzo dokładny, j
 				- `find / -type d -o -size +1G` - znajdź pliki, które są katalogami lub mają rozmiar większy niż 1GB.
 	- `[akcja]` - czyli co zrobić z wynikiem:
 		- `-print` - wypisuje ścieżkę pliku na ekran (domyślnie) - `find / -name "passwd" -print`,
-		- `-ls` - wypisuje szczegółu jak `ls -l` - `find /tmp -type f -ls`,
+		- `-ls` - wypisuje szczegóły jak `ls -l` - `find /tmp -type f -ls`,
 		- `-delete` - usuwa znalezione pliki - `find /tmp -name "*.tmp" -delete`,
 		- `-exec` - wykonuje dowolne polecenie w znalezionym pliku - `find /home -name "*.jpg" -exec cp {} /backup/ \;`.
 			- wyjaśnienie akcji `-exec` - `-exec` mówi: 'dla każdego znalezionego pliku, uruchom polecenie'. Przykład:
@@ -65,12 +65,12 @@ Narzędzie do używa wcześniej zbudowanej bazy danych, jest błyskawiczne, ale 
 		- katalogi bez uprawnień do odczytu,   
 		Uwaga: atakujący często zostawiają pliki w `/tmp`. `locate` ich nie znajdzie, dopóki nie zmodyfikujesz konfiguracji `updatedb.conf`. 
 	- jeśli plik został usunięty, `locate` nadal może go widzieć, do czasu następnego updatedb,
-	pliki utworzone przed chwila są niewidoczne do czasu aktualizacji bazy. 
+	- pliki utworzone przed chwilą są niewidoczne do czasu aktualizacji bazy. 
 
 ## Wnioski bezpieczeństwa
 - pliki zapisywalne dla wszystkich (world-writable) to potencjalny wektor, ataku. Oznacza, że każdy może modyfikować plik, w tym atakujący,
 - pliki SUID - są uruchomione z uprawnieniami właściciela, to potencjalne ryzyko, należy się upewnić, że plik jest może być uruchomiony tylko przez upoważnione osoby nie przez wszystkich, 
 - pliki SGID - podobna sytuacja jak SUID, pliki są otwierane z uprawnieniami grupy, należy weryfikować czy wszyscy użytkownicy mający do nich dostęp uzasadniony, 
 - pliki bez właściciela mogą być pozostałością po usuniętych użytkownikach lub stworzone przez atakującego, 
-- duże pliki większe niż 10 MB mogą zawierać pakiety, narzędzia, dumping danych, 
+- duże pliki większe niż 10 MB mogą zawierać pakiety, narzędzia, dump danych, 
 - pliki w `/tmp` mogą być stworzone przez atakującego, należy weryfikować zawartość tego folderu pod kątem podejrzanych plików, 
