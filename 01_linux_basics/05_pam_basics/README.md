@@ -2,7 +2,7 @@
 
 ## Cel
 Ten katalog zawiera analizę PAM (Pluggable Authentication Modules)  w systemach Linux, ze szczególnym naciskiem na logikę uwierzytelniania, kontrolę dostępu oraz aspekty bezpieczeństwa istotne z perspektywy SOC/Blue Team.
-Jest to część większego repozytorium 01_linux_basics, obejmującego podstawy działania systemu Linux w kontekście bezpieczeństwa. 
+Jest to część większego repozytorium `01_linux_basics`, obejmującego podstawy działania systemu Linux w kontekście bezpieczeństwa. 
 
 ## Zakres
 W tym module skupiam się na:
@@ -16,26 +16,29 @@ W tym module skupiam się na:
 ## Struktura katalogu 
 
 - 05_pam_basics/
-	|-common-auth_PL.md
 	|-common-account_PL.md
-	|-common-session_PL.md
+	|-common-auth_PL.md
 	|-common-password_PL.md
-	|-login_PL.md
-	|-sshd_PL.md
-	|-sudo_PL.md
-	|-su_PL.md
-	|-lightdm_PL.md
+	|-common-session-noninteractive_PL.md
+	|-common-session_PL.md
 	|-gdm-password_PL.md
+	|-lightdm_PL.md
+	|-login_PL.md
 	|-pam_control_flags_PL.md
 	|-pam_modules_overview_PL.md
 	|-pam_types_overview_PL.md
+	|-sshd_PL.md
+	|-su_PL.md
+	|-sudo_PL.md
 	|-security/
 		|-faillock_PL.md
 		|-pwquality_PL.md
 		|-limits_PL.md
+		|-pam_env_PL.md
+		|-pwhistory_PL.md
 		|-access_PL.md
 		|-time_PL.md
-
+		
 ## Opis zawartości
 - common-* - analiza współdzielonych konfiguracji PAM używanych przez różne usługi,
 - login_PL.md / sshd_PL.md - konfiguracja logowania lokalnego i zdalnego,
