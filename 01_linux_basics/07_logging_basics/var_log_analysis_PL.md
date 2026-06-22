@@ -6,7 +6,7 @@ Zrozumienie jak czytać wpisy z pliku `auth.log` i poprawnie je interpretować.
 ## Czym jest auth.log
 Jest to plik logów uwierzytelniania. Zawiera dane związane z logowaniem, `sudo`, PAM, SSH i zmianami użytkowników. To najważniejszy plik do analizy włamań, nieudanych logowań, eskalacji uprawnień. 
 
-## kluczowe wpisy
+## Kluczowe wpisy
 - `Failed password for root from x.x.x.x` - oznacza nieudaną próbę logowania na konto roota. Jeśli widocznych jest wiele nieudanych prób może to oznaczać brute force, 
 - `Failed password for invalid user` - oznacza próbę logowania na nieistniejące konto. Oznacza, próbę skanowania użytkowników, 
 - `Accepted password for user from x.x.x.x` - oznacza udane logowanie. Jeśli IP jest spoza zaufanej sieci lub o nietypowej porze, może oznaczać kompromitację konta, 
@@ -41,7 +41,7 @@ Analiza:
 - podejrzane IP to 45.33.22.11,
 - podejrzane zachowanie: użytkownik jan użył polecenia `sudo` po to by użyć polecenia `su -`, celem włączenia powłoki roota. Jest to podejrzane ponieważ mając dostęp do roota poprzez `sudo` mógł po prostu użyć polecenia `sudo -i`. Tu ma znaczenie różnica pomiędzy `sudo` i `su`. Należy pamiętać, że `sudo` jest zaprojektowane jako narzędzie do audytu (wykonane polecenia z użyciem `sudo` są logowane w `auth.log`). Inaczej jest z `su`, które tworzy nową powłokę, tak jakby jan zalogował się na nowo jako root. Wszystkie polecenia wydane w tej powłoce są logowanie jako działania roota, nie jana, ponieważ loginuid procesu po `su -` będzie wskazywał na roota (UID 0) a nie jana. Takie działanie sprawia, że osoba, zalogowana na koncie jan, zaciera za sobą ślady poprzez użycie `sudo su`, by utrudnić wykrycie jego działań.   
 Zalecane działania:
-- należy sprawdzić wpisy dla jana w`/var/log/auth.log`, czy logował się z podejrzanego IP, 
+- należy sprawdzić wpisy dla jana w `/var/log/auth.log`, czy logował się z podejrzanego IP, 
 - sprawdzić uprawnienia jana - `sudo -l` i zweryfikować czy powinien mieć takie uprawnienia, 
 - sprawdzić `.bash_history` dla jan, czy nie wykonywał innych podejrzanych poleceń, za pomocą polecenia `sudo cat /home/jan/.bash_history`,
 - sprawdzić czy konto jan jest skompromitowane, przeglądając historię logowań (dni, godziny, IP, polecenia). Jeśli konto zostało skompromitowane należy zmienić hasło oraz sprawdzić `authorized_keys` pod kątem dodania przez atakującego swoich kluczy. 
