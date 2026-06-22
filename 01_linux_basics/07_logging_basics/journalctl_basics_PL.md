@@ -65,7 +65,7 @@ Analiza:
 - wpisy `connect() failed()` -  świadczą o problemie z połączeniem, z powodu wyłączonej usługi php-fpm, 
 - dopiero po tych 2 błędach została włączona usługa php-fpm,
 - użytkownik jan, przy  użyciu `sudo` wyświetla zawartość katalogu `/var/www/html`, a następnie zmienia uprawnienia dla podkatalogu `uploads`. To podejrzane działanie, umożliwiające każdemu otwieranie katalogu, zapisywanie w nim plików oraz ich odczyt, 
-- kolejny wpis ukazuje logowanie z lokalnego IP, najprawdopodobniej to logowanie admina, 
+- kolejny wpis ukazuje logowanie z lokalnego IP, najprawdopodobniej to logowanie admina. Jednak lodowanie odbyło się przez SSH, bez względu na to czy to był admin czy nie, logowanie hasłem do roota przez SSH powinno być wyłączone (czerwona flaga) - logowanie powinno odbywać się za pomocą klucza,
 - kolejne zdarzenie `Out of memory` ukazuje, że usługa php-fpm zajmuje dużo pamięci, procesy które uruchomiła zostały zabite przez system, co pośrednio zabija też usługę, 
 - na końcu bieżących logów następuje zresetowanie usługi (prawdopodobnie przez admina, który dostrzegł, że usługa nie działa poprawnie), 
 - to co tutaj zaszło wskazuje, że atakujący mający dostęp do konta jan posiadającego prawa do `sudo`, prawdopodobnie:
