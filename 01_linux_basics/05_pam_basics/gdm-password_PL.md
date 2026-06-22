@@ -4,13 +4,29 @@
 Zrozumienie, w jaki sposób PAM obsługuje logowanie graficzne w menedżerze GDM (GNOME Display Manager) – domyślnym w Ubuntu, Fedorze, Debianie z GNOME.
 
 ## Czym jest aplikacja GDM
-To menedżer logowania do środowiska graficznego GNOME. Aplikacja posiada swój plik konfiguracyjny w katalogu `/etc/gdm3/custom.conf` (Ubuntu, Debian) lub `/etc/gdm/custom.conf` (RHEL, Fedora). 
+To menedżer logowania do środowiska graficznego GNOME. Działa podobnie do LightDM - pokazuje ekran logowania, uwierzytelnia przez PAM, uruchamia sesję użytkownika. 
+Aplikacja posiada swój plik konfiguracyjny w katalogu `/etc/gdm3/custom.conf` (Ubuntu, Debian) lub `/etc/gdm/custom.conf` (RHEL, Fedora). Wśród typowych opcji pliku konfiguracyjnego wyróżnić można:
+- Autologowanie:
+	- `AutomaticLoginEnable=true` - true oznacza, że autologowanie jest włączone,
+	- `AutomaticLogin=anna` - konto do automatycznego logowania to anna,
+- Opóźnienie automatycznego logowania:
+	- `TimedLoginEnable=true` - true -> włączone,
+	- `TimedLogin=anna` - konto, na którym logowanie będzie z opóźnieniem,
+	- `TimedLoginDelay=10` - opóźnienie wynosi 10 sekund.
+- Security - logowanie root:
+	- `AllowRoot=true` - true oznacza, że jest zgoda na logowanie root przez GUI,
+- Dostęp zdalny [xdmcp]
+	- `Enable=true` - true oznacza włączony.
 
 ## Czym jest plik /etc/pam.d/gdm-password
 To plik konfiguracyjny PAM dla aplikacji GDM. Zawiera załączone pliki common (common-auth, common-account, common-session, common-password) oraz opcjonalnie moduły specyficzne dla tej aplikacji, np.:
-- `pam_gdm.so` - komunikacja pomiędzy GDM i PAM,
-- `pam_gnome_keyring.so` - odblokowuje klucze GNOME,
-- `pam_systemd.so` - jeśli jest w common-session (a powinien), nie dodajemy go ponownie,
+- `pam_gdm.so` (auth, session) - pozwala na komunikację pomiędzy GDM i PAM, np. informowanie GDM o stanie uwierzytelnienia, blokada ekranu,
+- `pam_gnome_keyring.so` (auth, session) - odblokowuje klucze GNOME,
+- `pam_systemd.so` - jeśli jest w common-session (a powinien), nie dodajemy go drugi raz w gdm-password. Odpowiada za rejestrację sesji w systemd (loginctl). 
+Moduł pam_gdm.so jest często używany, działa jako pomost komunikacyjny między PAM a procesem GDM. Przekazuje informacje (sukces / porażka, dane użytkownika) i pozwala GDM na reakcję. Bez niego gdm nie działa poprawnie. 
+`pam_gdm.so` występuje zazwyczaj w dwóch typach PAM: auth i session.
+- auth - Przekazuje informację do GDM, że użytkownik rozpoczął proces uwierzytelniania. GDM może np. wyświetlić "Sprawdzanie hasła..."
+- session - Po udanym uwierzytelnieniu – przekazuje dane sesji (PID, DISPLAY, XAUTHORITY) do GDM, aby GDM mógł uruchomić środowisko graficzne użytkownika.
 
 ## Gdzie znajdują się logi 
 - `/var/log/auth.log` - nieudane i udane próby logowania przez PAM,
@@ -18,12 +34,12 @@ To plik konfiguracyjny PAM dla aplikacji GDM. Zawiera załączone pliki common (
 
 ## Przykładowe wpisy w logach
 - auth.log:
-	- gdm-password: pam_unix(gdm-password:auth): authentication failure; user=anna
-	- gdm-password: pam_unix(gdm-password:session): session opened for user anna
+	- `gdm-password: pam_unix(gdm-password:auth): authentication failure; user=anna`
+	- `gdm-password: pam_unix(gdm-password:session): session opened for user anna`
 - gdm.log:
-	- gdm-launch-environment][1234]: pam_unix(gdm-launch-environment:session): session opened for user Debian-gdm by (uid=0)
-	- gdm-simple-slave][1234]: GdmSlave: Greeter started on display :0
-	- gdm3][2345]: GdmSession: Emitting 'session-started' signal with pid '3456'
+	- `gdm-launch-environment[1234]: pam_unix(gdm-launch-environment:session): session opened for user Debian-gdm by (uid=0)`
+	- `gdm-simple-slave[1234]: GdmSlave: Greeter started on display :0`
+	- `gdm3[2345]: GdmSession: Emitting 'session-started' signal with pid '3456'`
 
 ## Wnioski bezpieczeństwa
 - plik powinien zawierać pliki common, należy przy tym sprawdzić kompletność tych plików, w tym ustawienia modułu pam_faillock.so. Poprawna konfiguracja:
@@ -31,11 +47,28 @@ To plik konfiguracyjny PAM dla aplikacji GDM. Zawiera załączone pliki common (
 	@include common-account
 	@include common-session
 	@include common-password
-- należy weryfikować zapisy w pliku konfiguracyjnym GDM (custom.conf) czy nie zawiera ustawień opcji mogących powodować zagrożenie, 
+- należy weryfikować zapisy w pliku konfiguracyjnym GDM (custom.conf) czy nie zawiera ustawień opcji mogących powodować zagrożenie:
+	- `AutomaticLoginEnable=true` + `AutomaticLogin=anna` - takie ustawienie pozwala na automatyczne logowanie do konta anna bez podawania hasła (niebezpieczne),
+	- `AllowRoot=true` - pozwala na logowanie roota przez GUI (krytyczne), 
+	- `DisableMultipleSessions=true` - blokuje drugą sesję graficzną dla tego samego użytkownika. Zwiększa bezpieczeństwo (utrudnia nieautoryzowany dostęp fizyczny i zdalny), ale może blokować logowanie lokalne po zdalnej sesji. W środowisku biurowym zalecane,
+	- jeśli dostęp zdalny xdmcp nie jest potrzebny należy ustawić jego wartość na false, true oznacza, że dostęp jest włączony,
+	- poprawna konfiguracja:  
+		Autologowanie WYŁĄCZONE  
+		`AutomaticLoginEnable=false`  
+		`TimedLoginEnable=false`  
+		Blokada drugiej sesji (zalecane dla stacji roboczych)  
+		`DisableMultipleSessions=true`  
+		[security]  
+		Logowanie root WYŁĄCZONE  
+		`AllowRoot=false`  
+		[xdmcp]  
+		Zdalny dostęp WYŁĄCZONY  
+		`Enable=false`  
 - należy monitorować zapisy w pliku `/etc/pam.d/gdm-password` pod kątem nieznanych modułów i nieautoryzowanych zmian, 
 - monitoring logów pozwala na wykrycie potencjalnych zagrożeń. 
 
 ## Case study – GDM w środowisku produkcyjnym
+```
 Kontekst  
 Firma posiada stację roboczą z Ubuntu 22.04 (GNOME, więc GDM).  
 Stacja jest używana przez zespół danych – użytkownicy: anna (analityk), jan (inżynier danych), admin_ksi (ma sudo).  
@@ -91,7 +124,7 @@ Dodatkowe informacje z wywiadu:
 Stacja ma włączone logowanie przez VNC (zdalny pulpit)  
 admin_ksi zgłosił, że w nocy nie pracował  
 anna mówi, że ma trudności z logowaniem od kilku dni.  
-
+```
 Analiza:  
 - Polityka bezpieczeństwa:  
 	- `AutomaticLoginEnable=true` - nie spełniony, autologowanie jest włączone,
@@ -105,7 +138,7 @@ Analiza:
 	  `Enable=true` - nie spełniony - dostęp zdalny jest włączony,
 	- Blokada konta po 5 nieudanych próbach logowania - nie spełniony, z logów wynika, że blokada następuje dopiero po 6 próbie. Plik common-auth oraz plik gdm-password są skonfigurowane poprawnie -> problem zapewne leży w pliku konfiguracyjnym dla modułu `pam_faillock.so` - wpisany limit nieudanych prób został ustawiony na 6 zamiast na 5. 
 - z logów wynika, że doszło do nocnego ataku brute force, 
-	- najpierw zostało zaatakowane konto anna, po 6 nieudanej próbie zostało zablokowane przez moduł faillock, to dlatego anna ma trudności z zalogowaniem, 
+	- najpierw zostało zaatakowane konto anna, po 6 nieudanej próbie zostało zablokowane przez moduł `pam_faillock.so`, to dlatego anna ma trudności z zalogowaniem, 
 	- w dalszej kolejności zaatakowano konto admin_ksi, w 6 próbie uzyskano dostęp i została otworzona sesja dla tego użytkownika, konto zostało skompromitowane.   
 
 Sugerowane działania:  
@@ -114,7 +147,7 @@ Sugerowane działania:
 	- `AutomaticLogin=anna` - zmienić wartość na pustą,
 	- `TimedLoginEnable=true` - zmienić wartość na false, 
 	- `TimedLogin=anna` - przy wyłączonym autologowaniu opcja nie działa, jednak dla bezpieczeństwa - ustawić na wartość pustą,  
-	- `TimedLoginDelay=5` - niepotrzebny przy wyłączonym logowaniu, może pozostać jak jest, 
+	- `TimedLoginDelay=5` - niepotrzebny przy wyłączonym logowaniu, może pozostać jak jest, jednak dla bezpieczeństwa lepiej ustawić na 0, 
 	- `DisableMultipleSessions=false` - zmienić na true,
 	- `AllowRoot=true` - zmienić na false, 
 	- [xdmcp]
@@ -123,6 +156,9 @@ Sugerowane działania:
 	Powyższe działania pozwolą spełnić politykę bezpieczeństwa firmy.
 - konto admin_ksi zostało skompromitowane, zalecane natychmiastowa zmiana hasła użytkownika, pełny audyt konta lub ewentualne zablokowanie konta. 
 - należy sprawdzić działania przeprowadzone na koncie admin_ksi od czasu uzyskania dostępu po ataku brute force i wycofać wszystkie nieautoryzowane działania. 
-- sprawdzić konfigurację wszystkich plików konfiguracyjnych PAM dla aplikacji celem sprawdzenia czy atakujący nie pozostawił backdoora. 
+- sprawdzić konfigurację wszystkich plików konfiguracyjnych PAM dla aplikacji celem sprawdzenia czy atakujący nie pozostawił backdoora,
+- sprawdzić konfigurację VNC (zdalny pulpit) i wyłączyć, jeśli nie jest potrzebny; jeśli jest potrzebny - ograniczyć dostęp przez firewall tylko dla zaufanych IP.
+- skorelować znaczniki czasowe z `auth.log` z logami serwera VNC (np. `/var/log/vnc.log`, `/var/log/syslog` lub `journalctl -u vncserver`) oraz logami firewalla, aby ustalić źródłowe IP ataku`), 
+- zablokować IP, z którego przyszedł atak. 
 
 
