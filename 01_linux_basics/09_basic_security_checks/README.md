@@ -1,4 +1,4 @@
-## 09_basics_security_chceck
+## 09_basics_security_chcecks
 
 ## Cel
 Ten katalog zawiera praktyczną checklistę do szybkiej oceny stanu bezpieczeństwa systemu Linux. Narzędzie pomocne podczas rutynowych audytów, wstępnej analizy pierwszego kontaktu z nieznanym systemem.   
@@ -24,7 +24,7 @@ Lista powstała w oparciu o wiedzę zdobytą podczas pracy z poprzednimi katalog
 ## Uwagi
 - `to nie jest pełny audyt` - lista nie zastępuje narzędzi takich jak Lynis, OpenSCAP czy ClamAV,
 - `to nie jest IR Playbook` - lista pomaga w detekcji, ale nie zastępuje procedur reagowania na incydenty, 
-- `nie wszystkie ostrzeżenia są prawdziwe` - niektóre 'podejrzane' elementy moga być normalne dla konkretnego środowiska (np. serwer web będzie miał otwarty porty 80 i 443).
+- `nie wszystkie ostrzeżenia są prawdziwe` - niektóre 'podejrzane' elementy mogą być normalne dla konkretnego środowiska (np. serwer web będzie miał otwarty porty 80 i 443).
 
 ## Powiązane katalogi
 - `02_users_and_groups` - szczegółowa analiza użytkowników, 
