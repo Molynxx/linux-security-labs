@@ -48,11 +48,10 @@ Typ ten nie bierze udziału bezpośrednio w procesie logowania, lecz odpowiada z
 
 | Moduł | Opis | Ważne opcje |
 |-------|------|-------------|
-| pam_unix.so |zmiana hasła lokalnego | remember, use_authtok |
+| pam_unix.so | zmiana hasła lokalnego | remember, use_authtok |
 | pam_pwquality.so | polityka haseł | minlen, retry, dcredit, ucredit |
 | pam_pwhistory.so | historia haseł | remember |
 | pam_sss.so | zmiana hasła LDAP | use_authtok |  
-
 
 ## Wnioski bezpieczeństwa
 - sam dobór modułów nie jest wystarczający - kluczowe znaczenie ma ich kolejność, flagi kontrolne oraz opcje, które definiują ich rzeczywiste działanie, 
