@@ -18,7 +18,7 @@ Przykład: `export LD_PRELOAD=/home/user/biblioteka.so`
 UWAGA: zmienna obowiązuje do końca sesji lub do zmiany tej zmiennej, to nie jest zmiana trwała.
 
 ## Ustawianie zmiennych środowiskowych (trwale)
-Zmienne można trwale zmienić w kilki miejscach, edytując pliki:
+Zmienne można trwale zmienić w kilku miejscach, edytując pliki:
 - `~/.bashrc` - zmiana tylko dla danego użytkownika (sesja powłoki),
 - `~/.profile` - tylko dla danego użytkownika (sesje logowania), 
 - `/etc/environment` - zmiana globalna, dotyczy zmiennych dla wszystkich użytkowników,
