@@ -17,7 +17,7 @@ Zrozumienie, jakie podstawowe informacje o systemie można odczytać i dlaczego 
 		- rootkit jest trudny do wykrycia, standardowe narzędzia (nawet `rhhunter`, `chkrootkit`) mogą go nie wykryć,
 		- atakujący może działać w ukryciu, czytać dane, logować hasła, wysyłać ruch.
 - sprawdzenie, z jakiego pakietu pochodzi aktualne jądro (Debian/Ubintu):
-	- `dpkg -S /boot/vmlinuz-$(uname -r)`,
+	- `dpkg -l /boot/vmlinuz-$(uname -r)`,
 - sprawdzenie, czy suma kontrolna się zgadza:
 	- `sudo debsums linux-image-$(uname -r) 2>/dev/null | grep vmlinuz` - jeśli wynik jest `OK` znaczy, że jądro nie zostało zmienione, jeśli `FAILED` jądro zostało zmienione - czerwona flaga,
 - porównanie daty pliku jądra z datą instalacji systemu:
