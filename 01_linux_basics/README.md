@@ -1,4 +1,4 @@
-# Linux Security Labs
+# 01_linux_basics
 
 Praktyczna dokumentacja nauki bezpieczeństwa systemu Linux z perspektywy SOC/Blue Team i Detection Engineering. Repozytorium powstało jako portfolio w procesie przebranżowienia z inżynierii budowlanej do cyberbezpieczeństwa.
 
