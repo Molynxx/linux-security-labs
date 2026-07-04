@@ -1,6 +1,6 @@
 # 01_linux_basics
 
-Praktyczna dokumentacja nauki bezpieczeństwa systemu Linux z perspektywy SOC/Blue Team i Detection Engineering. Repozytorium powstało jako portfolio w procesie przebranżowienia z inżynierii budowlanej do cyberbezpieczeństwa.
+Podstawy działania systemu Linux w kontekście bezpieczeństwa - od struktury po audyt i analizę logów.
 
 ## Cel
 Zrozumienie mechanizmów działa systemy Linux, analizy logów, kontroli dostępu oraz wykrywania zagrożeń - wszystko w kontekście pracy w Security Operation Center. 
@@ -17,22 +17,5 @@ Zrozumienie mechanizmów działa systemy Linux, analizy logów, kontroli dostęp
 - `08_tmp_and_files_locations/` - katalogi tymczasowe, wyszukiwanie plików (find, locate),
 - `09_basic_security_checks/` - checklista audytu bezpieczeństwa Linux. 
 
-## Metoda nauki
-Każdy temat zawiera cześć teoretyczną i praktyczne przykłady. W kluczowych miejscach dodane są:
-- `SOC perspective` - dlaczego to ważne dla analityka bezpieczeństwa, 
-- `Case study` - analiza realistycznych scenariuszy (brute force, persistence, eskalacja). 
-
-## Dla kogo
-- dla osób przebranżawiających się do cyberbezpieczeństwa, 
-- dla aspirujących analityków SOC i Detection Engineering, 
-- dla każdego, kto chce zrozumieć Linuxa głębiej niż "wpisz to polecenie".
-
 ## Status 
 Repozytorium `01_linux_basucs` - ukończone.   
-
-Kolejne w przygotowaniu:
-- `02_linux_advanced` - systemd, procesy, persistence, forensics, 
-- `03_soc_linux_security_labs` - scenariusze detekcji i analizy. 
-
-## Powiązane repozytoria
-- `networking-for-soc` - podstawy sieci dla SOC (w budowie).
