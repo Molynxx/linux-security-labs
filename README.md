@@ -16,9 +16,9 @@ Scenariusze detekcji - brute force, eskalacja, C2, analiza logów, threat huntin
 
 
 ## Metoda nauki
-- zrozumienie zamiast wkuwania, 
-- teoria + praktyczne polecenia + SOC perspective,
-- case studies z realistycznych scenariuszy ataków. 
+- Zrozumienie zamiast wkuwania, 
+- Teoria + praktyczne polecenia + SOC perspective,
+- Case studies z realistycznych scenariuszy ataków. 
 
 
 ## Dla kogo
