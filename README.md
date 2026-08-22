@@ -1,6 +1,6 @@
 # Linux Security Labs
 
-Practical documentation of learning the Linux system cybersecurity form SOC / Blue Team perspective. The repository was created as part of a process of independent reorganization from environmental engineering to cybersecurity. 
+Practical documentation of learning the Linux system cybersecurity from a SOC / Blue Team perspective. The repository was created as part of a process of independent reorganization from environmental engineering to cybersecurity. 
 
 ### Structure 
 
@@ -20,8 +20,8 @@ Detection scenarios - brute force, escalation, C2, logs analysis, Threat Hunting
 
 ### For who
 - For people changing careers to work in cybersecurity, 
-- For people who aspiring to be SOC analysts and Detection Engineers, 
-- For anyone who wan to understand the Linux system more deeper than "Write that command". 
+- For people aspiring to be SOC analysts and Detection Engineers, 
+- For anyone who wants to understand the Linux system more deeply than "write that command". 
 
 ### Connected repositories 
 - networking-for-soc - network basics for SOC - `In progress`
