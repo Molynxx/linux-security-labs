@@ -15,7 +15,7 @@ Jest to sekwencja zdarzeń od momentu włączenia zasilania komputera do momentu
 
 ## Najważniejsze zagrożenia dla SOC i sposoby ich wykrywania
 - `GRUB`:
-	- zagrożenie: Atakujący posiada dostęp do konta root lub dostęp bezpośredni do konsoli i  edytuje `/etc/default/grub`, dodając `init=/bin/bash` do linii `GRUB_CMDLINE_LINUX_DEFAULT`. Następnie uruchamia `update-grub` (Debian/Ubuntu) i uruchamia ponownie system. Dzięki tym zabiegom po restarcie system nie uruchamia init/systemd lecz od razu powłokę bash jako  root bez logowania i bez haseł. Praktycznie ten atak jest skuteczny tylko z fizycznym dostępem lub przez zdalne zarządzanie (iLO/iDRAC), ponieważ zdalne połączenie nie będzie możliwe bo system nie uruchomi sieci.
+	- zagrożenie: Atakujący posiada dostęp do konta root lub dostęp bezpośredni do konsoli i  edytuje `/etc/default/grub`, dodając `init=/bin/bash` do linii `GRUB_CMDLINE_LINUX_DEFAULT`. Następnie uruchamia `update-grub` (Debian/Ubuntu) i uruchamia ponownie system. Dzięki tym zabiegom po restarcie system nie uruchamia init/systemd lecz od razu powłokę bash jako  root bez logowania i bez haseł. Praktycznie ten atak jest skuteczny tylko z fizycznym dostępem lub przez zdalne zarządzanie (iLO/iDRAC). Zwykłe zdalne połączenie (np. SSH) nie będzie możliwe, bo system nie uruchomi sieci - lecz iLO/iDRAC działa niezależnie od systemu.
 	- jak wykryć: należy sprawdzić `/etc/default/grub` oraz `/boot/grub/grub.cfg` czy nie zawiera wpisu `init=/bin/bash`. Można wykorzystać polecenie: ` cat /etc/default/grub | grep "init="`. 
 	- jak naprawić: 
 		- usunąć `init=/bin/bash` z `/etc/default/grub`,
