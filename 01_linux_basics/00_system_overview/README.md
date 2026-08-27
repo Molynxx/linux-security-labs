@@ -1,18 +1,18 @@
 # 00_system_overview
 
-### Goal 
-Understanding the basic Linux structure: what is located where, how the system starts, which folders are essential for SOC.
+### Lab goal 
+Understanding the basic Linux structure: what is located where, how the system starts, which folders are important from a SOC perspective.
 
 ### Scope
 - `filesystem_structure` - the map of folders in `/` (FHS),
 - `important_directories` - deep analysis of critical folders for SOC: `/etc`, `/var/log`, `/tmp`, `/home`, `/root`, `/proc`, `/boot`, `/lib`, `/bin`,
 - `boot_process_basics` - stages of booting: BIOS/UEFI -> GRUB -> kernel -> initramfs -> systemd.
 
-### Why is that important (SOC/IR)
-- navigation in the system without guessing - we know where to look for logs, configuration or temporary files,
-- detecting modifications in essential folders - to detect backdoors, replaced binary files, suspected files, etc.,
-- understanding, where an attacker can inject backdoor - e.g. boot process, initramfs, GRUB,
-- having this basic knowledge before logs, processes and forensics analysis. 
+### Why is this important (SOC/IR)
+- navigating in the system without guessing - we know where to look for logs, configuration or temporary files,
+- detecting modifications in essential folders - to detect backdoors, replaced binaries, suspicious files, etc.,
+- understanding, where an attacker can inject a backdoor - e.g. boot process, initramfs, GRUB,
+- building this basic knowledge before logs, processes and forensics analysis. 
 
 ## Polski / Polish
 
