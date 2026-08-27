@@ -11,8 +11,8 @@ Understanding the basic Linux structure: what is located where, how the system s
 ### Why is this important (SOC/IR)
 - navigating in the system without guessing - we know where to look for logs, configuration or temporary files,
 - detecting modifications in essential folders - to detect backdoors, replaced binaries, suspicious files, etc.,
-- understanding, where an attacker can inject a backdoor - e.g. boot process, initramfs, GRUB,
-- building this basic knowledge before logs, processes and forensics analysis. 
+- understanding where an attacker can inject a backdoor - e.g. boot process, initramfs, GRUB,
+- building this basic knowledge before log analysis, processes analysis and forensics. 
 
 ## Polski / Polish
 
