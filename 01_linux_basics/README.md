@@ -1,20 +1,20 @@
 # 01_linux_basics
 
-How the Linux system works in the security context - from structure to audit and log analysis. 
+How Linux system works in the security context - from structure to audit and log analysis. 
 
-### Goal of laboratory
+### Lab goal
 Understanding the mechanics underlying the Linux system, log analysis, access control and threat detection - all in the context of working in a Security Operation Center.
 
 ### Scope
-- `00_system_overview/` - file system structure, dirs, boot process,
+- `00_system_overview/` - filesystem structure, directories, boot process,
 - `01_etc_analysis/` - configuration files analysis (`/etc/default`, `/etc/login.defs`, `/etc/security`),
-- `02_users_and_groups/` - users and groups (`/etc/passwd`, `/etc/group`, `/etc/shadow`, managing commands),
+- `02_users_and_groups/` - users and groups (`/etc/passwd`, `/etc/group`, `/etc/shadow`, management commands),
 - `03_permissions_and_ownership/` - privileges, `chmod`, `chown`, `umask`, SUID, SGID, sticky bit,
 - `04_sudo_and_privilege_escalation_basics/` - `sudo`, sudoers, privilege escalation risks, 
 - `05_pam_basics/` - Pluggable Authentication Modules: configuration, types, flags, modules, policies, 
-- `06_processes_and_system_info/` - processes (`/proc`, `ps`, `top`, `htop`), environmental variables, system identity,
+- `06_processes_and_system_info/` - processes (`/proc`, `ps`, `top`, `htop`), environment variables, system identity,
 - `07_logging_basics/` - system logs (auth.log, syslog, journalctl), grep filtering, 
-- `08_tmp_and_file_locations/` - temporary folders, file searching (`find`, `locate`),
+- `08_tmp_and_file_locations/` - temporary directories, file search (`find`, `locate`),
 - `09_basic_security_checks/` - Linux security audit checklist. 
 
 ### Status
