@@ -1,6 +1,6 @@
 # 01_linux_basics
 
-How Linux system works in the security context - from structure to audit and log analysis. 
+How the Linux system works in the security context - from structure to audit and log analysis. 
 
 ### Lab goal
 Understanding the mechanics underlying the Linux system, log analysis, access control and threat detection - all in the context of working in a Security Operations Center.
