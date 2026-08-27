@@ -13,18 +13,18 @@ Advanced mechanics of the Linux system - systemd, persistence, process analysis,
 #### 03_soc_linux_security_labs - `In progress` 
 Detection scenarios - brute force, escalation, C2, log analysis, Threat Hunting. 
 
-### Learning methods
+### Learning method
 - Understanding instead of remembering, 
 - Theory + practical commands + SOC perspective,
 - Case studies based on realistic attack scenarios.
 
 ### Who is this for
 - For people changing their career to cybersecurity, 
-- For aspiring SOC analysts and Detection Engineers, 
+- For aspiring SOC analysts and detection engineers, 
 - For anyone who wants to understand the Linux system more deeply than "just type that command". 
 
 ### Related repositories 
-- networking-for-soc - network basics for SOC - `In progress`
+- networking-for-soc - network basics for SOC - `in progress`
 
 
 ## Polski / Polish
