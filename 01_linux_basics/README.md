@@ -3,11 +3,11 @@
 How Linux system works in the security context - from structure to audit and log analysis. 
 
 ### Lab goal
-Understanding the mechanics underlying the Linux system, log analysis, access control and threat detection - all in the context of working in a Security Operation Center.
+Understanding the mechanics underlying the Linux system, log analysis, access control and threat detection - all in the context of working in a Security Operations Center.
 
 ### Scope
 - `00_system_overview/` - filesystem structure, directories, boot process,
-- `01_etc_analysis/` - configuration files analysis (`/etc/default`, `/etc/login.defs`, `/etc/security`),
+- `01_etc_analysis/` - configuration file analysis (`/etc/default`, `/etc/login.defs`, `/etc/security`),
 - `02_users_and_groups/` - users and groups (`/etc/passwd`, `/etc/group`, `/etc/shadow`, management commands),
 - `03_permissions_and_ownership/` - privileges, `chmod`, `chown`, `umask`, SUID, SGID, sticky bit,
 - `04_sudo_and_privilege_escalation_basics/` - `sudo`, sudoers, privilege escalation risks, 
@@ -18,7 +18,7 @@ Understanding the mechanics underlying the Linux system, log analysis, access co
 - `09_basic_security_checks/` - Linux security audit checklist. 
 
 ### Status
-Repository 01_linux_basics - finished. 
+01_linux_basics - finished. 
 
 ## Polski / Polish
 
