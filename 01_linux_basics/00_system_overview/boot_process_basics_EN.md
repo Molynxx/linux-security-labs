@@ -19,7 +19,7 @@ This is a sequence of events from the moment of switching on the computer to the
 	- how to detect: check `/etc/default/grub` and `/boot/grub/grub.conf` if it does not contain the entry `init=/bin/bash`. You can use the command: `cat /etc/default/grub | grep "init="`.
 	- how to repair:
 		- delete `init=/bin/bash` from `/etc/default.grub`, 
-		- run `sudo update-grub` (Debian/Ubintu), 
+		- run `sudo update-grub` (Debian/Ubuntu), 
 		- reboot the system, change passwords and check for other backdoors - attackers often leave additional backdoors in the system. 
 - `initramfs`:
 	- threat: initramfs is a temporary filesystem, which is loaded into RAM with the kernel. It contains the necessary scripts and drivers to mount the correct file system from the drive. Initramfs is not a single file, it is an archive containing all directories with scripts and programs. It is main startup script named `init` and runs first. Attackers (who have access to root) can:
@@ -50,12 +50,12 @@ This is a sequence of events from the moment of switching on the computer to the
 				Even special tools, created to detect rootkits such as `rkhunter` or `chkrootkit` might not work because they rely on the same system calls.
 	The threat is so dangerous because the kernel replacement process does not require physical access, it works through SSH as well - the only condition is remote access to root. 
 	- how to detect: 
-		- a good practice is to save the checksum immediately after system installation, it makes possible to check at any moment whether they match the original values. If the result is `OK` the kernel was tot replaced, `FAIL` result means the kernel has been replaced. 
+		- a good practice is to save the checksum immediately after system installation, it makes it possible to check at any moment whether they match the original values. If the result is `OK` the kernel was not replaced, `FAIL` result means the kernel has been replaced. 
 			- `md5sum /boot/vmlinuz-$(uname -r) > /root/kernel_md5.txt` - save the checksum, after system installation, 
 			- `md5sum -c /root/kernel_md5.txt` - compare the current with the initial one.
 		- another method is comparison with the package (Debian/Ubuntu): 
 			- `sudo debsums$(dpkg -S /bootvmlinuz-$(uname -r) | cut -d: -f1)` - verify the package checksum. The `debsums` command compares the checksum of the kernel file with the correct value saved in the database and returns `OK` if the checksums match, or `FAIL` if the checksums don't match, 
-			- you can check the modification date of the kernel file too: `ls -la /boot/vmlinuz-$(uname -r)`, if the date is different from the instillation date - the kernel has been changed. 
+			- you can check the modification date of the kernel file too: `ls -la /boot/vmlinuz-$(uname -r)`, if the date is different from the installation date - the kernel has been changed. 
 	- how to repair: 
 		- `sudo apt install --reinstall linux-image-$(uname -r)`  - reinstall the kernel package (Debian/Ubuntu), 
 		- after re-installation you need to restart the system. 
