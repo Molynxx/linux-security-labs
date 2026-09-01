@@ -9,11 +9,11 @@ Identify which directories are crucial to SOC and what risks are associated with
 	- threats:
 		- adding a new user UID 0 - an attacker can add a new user with root privileges. There should be only one root user in the system, 
 		- modification of `/etc/shadow` - change the root password or other user. An attacker leaves himself a way to log in again, which might look like completely normal in logs, 
-		- modifying `/etc/sudoers` - granting sudo privileges. An attacker can set sudo for a compromised account or fora an account he created himself, thus obtaining full system privileges. 
+		- modifying `/etc/sudoers` - granting sudo privileges. An attacker can set sudo for a compromised account or for an account he created himself, thus obtaining full system privileges. 
 		- modifying `/etc/ssh/sshd_config` - enable password login for root. Usually by default this option is disabled, often root has disabled access through SSH too. If an attacker will gain access to the root, he can enable these options to log in remotely, 
 	- the details of the threats mentioned above are written in more details in this repository in files:
-		- `02_users_and_gruops/` - `passed`, analysis, `group` analysis, `shadow` analysis, 
-		- `04_sudo_and_privilage_escalation_basics/` - `sudoers` analysis, 
+		- `02_users_and_groups/` - `passwd`, analysis, `group` analysis, `shadow` analysis, 
+		- `04_sudo_and_privilege_escalation_basics/` - `sudoers` analysis, 
 		- `05_pam_basics/` - analysis of `pam.d` and PAM modules, 
 		- `09_basic_security_checks/` - scripts for audit.
 - `/var/log` - system logs:
@@ -21,26 +21,26 @@ Identify which directories are crucial to SOC and what risks are associated with
 	- threats:
 		- no logs for the specified time period - it might mean, that an attacker obtains access to the file and could have erased it to hide his activities, 
 		- change privileges to the logs (e.g. `chmod 777 /var/log/auth.log`) - an attacker could have change file privileges to have access to it from many accounts and every time hide his activities, 
-		- replacement of the log rotations program (Logrotate) - it is dangerous because an attacker gaining access to the service account gets fill access to the service log directory too, e.g. `/vat/log/gitlab`. Logrotate works automatically in accordance with the setting creating a new file an archiving the old one. The attacker who has access to the service log directory can put n there a file with malicious code, replace one of the directories with a ling to e.g. `/etc/bash_completnion.d`. In this case Logrotate with root privileges will save malicious file in archive in the directory specified by the link. Scripts from this directory are run every time root log in, so depending on the content of malicious file it can e.g. creating new account, modifying account privileges, file privileges and directory privileges, etc. 
+		- replacement of the log rotations program (Logrotate) - it is dangerous because an attacker gaining access to the service account gets full access to the service log directory too, e.g. `/var/log/gitlab`. Logrotate works automatically in accordance with the setting creating a new file and archiving the old one. The attacker who has access to the service log directory can put there a file with malicious code, replace one of the directories with a link to e.g. `/etc/bash_completion.d`. In this case Logrotate with root privileges will save malicious file in archive in the directory specified by the link. Scripts from this directory are run every time root logs in, so depending on the content of malicious file it can e.g. creating new accounts, modifying account privileges, file privileges and directory privileges, etc. 
 	- directory in more details in repository is:
 		- `07_logging_basics/` - log analysis structure and filtering. 
-- `/tmp` and `/vat/tmp`:
+- `/tmp` and `/var/tmp`:
 	- why it is important: attackers often put scripts in there, especially to the `/var/tmp` which is not cleared during the restart.
 	- threats: 
-		- placing the script and running it via root's cron - cron is the timetable of system tasks. If root or other user with sudo privileges has a configured cron task, which runs the file form `/tmp`, an attacker can put their own script there witch be run via cron, 
-		- compiling a privilege escalation tool - an attacker has access to the ordinary account and places in `/tmp` exploit source code, compiles it and runs. The exploit takes advantage of vulnerability in the kernel or sudo and rise thee attacker's privileges, 
-		- hiding files with strange names - an attacker cerates a file named `...` or`" "` which are easy to overlook or file named `-rf` which can damage administrator's commands, 
+		- placing the script and running it via root's cron - cron is the timetable of system tasks. If root or other user with sudo privileges has a configured cron task, which runs a file from `/tmp`, an attacker can put their own script there witch will be run via cron, 
+		- compiling a privilege escalation tool - an attacker has access to the ordinary account and places in `/tmp` exploit source code, compiles it and runs. The exploit takes advantage of vulnerability in the kernel or sudo and raise the attacker's privileges, 
+		- hiding files with strange names - an attacker creates a file named `...` or`" "` which are easy to overlook or file named `-rf` which can damage administrator's commands, 
 		- execution of the script by the vulnerable service (e.g. PHP) - the web server has the vulnerable script allows code execution (e.g. system(), eval()). An attacker places a script written in bash in `/tmp` and the vulnerable script executes it.
 	- directory in more details in repository is:
 		- `08_tmp_and_file_location/tmp_analysis`
 	- monitoring:
-		- `ls -la /tmp` - to check if there are any files `.sh`, `.py`, `.c` with strange names,
-		- `lsof /tmp` - which processes are using files in `.tmp`. 
+		- `ls -la /tmp` - to check if there are any  `.sh`, `.py`, `.c` files with strange names,
+		- `lsof /tmp` - which processes are using files in `/tmp`. 
 - `/home`:
 	- why it is important: users home directories are places where an attacker can leave backdoors, 
 	- threats: 
-		- adding an SSH key to the `/home.user.authorized_keys` - an attacker can add their own key to the authorized_keys file, as a result they gain permanent access, 
-		- modification of `~/.bashrc` , `~/.zshrc`, `~/.profile` - the script runs with each login, 
+		- adding an SSH key to the `/home/user/authorized_keys` - an attacker can add their own key to the authorized_keys file, as a result they gain permanent access, 
+		- modification of `~/.bashrc`, `~/.zshrc`, `~/.profile` - the script runs with each login, 
 	- monitoring: 
 		- `ls -la /home/*/.ssh/` - checking if there are any new keys, 
 		- `diff /home/user/.bashrc /backup/.bashrc` - comparing with a clean  copy. 
@@ -49,46 +49,47 @@ Identify which directories are crucial to SOC and what risks are associated with
 	- threats: 
 		- adding SSH key to the `/root/.ssh/authorized_keys` - this is critical because it gives permanent access to the root, 
 		- modification of `/root/.bashrc` - backdoor upon root login. `.bashrc` file it is a script which is executed upon each interactive login. It is destined for a specific user and is located in his home directory. It can give a backdoor to the attacker or cause creating a new user, etc, 
-		- saving escalation tools, even if they not used means that an attacker has gained the highest privileges, 
+		- saving escalation tools, even if they are not used means that an attacker has gained the highest privileges, 
 	- monitoring:
-		- `sudo ls -la .root/.ssh` - checking if there are any new keys,
+		- `sudo ls -la /root/.ssh` - checking if there are any new keys,
 		- `sudo cat /root/.bashrc` - checking if there are any suspicious entries, 
 		- `sudo ls -la /root` - checking if there are any suspicious files.
 - `/proc`:
 	- why it is important: it is the virtual file system which allows viewing processes, arguments and environment variables, 
 	- threats: 
 		- hidden process - it isn't visible in `ps`, but in `/proc` is visible, 
-		- LD_PRELOAD set in process environment variables - an attacker could inject a library, especially if the session wasn't protected in PAM witch `pam_env.so` module, 
-		- process running from a suspicious directory e.g. `/tmp`, `ps`, `top`, `htop`, `pstree` are based on same same source as `/proc`, they are more vulnerable to manipulation than `/proc`. E.g. `ps` can be replaced by rootkit or they results can be filtered. `.proc` shows the truth even if `ps` lies. 
+		- LD_PRELOAD set in process environment variables - an attacker could inject a library, especially if the session wasn't protected in PAM with `pam_env.so` module, 
+		- process running from a suspicious directory e.g. `/tmp`, `ps`, `top`, `htop`, `pstree` are based on same source as `/proc`, they are more vulnerable to manipulation than `/proc`. E.g. `ps` can be replaced by rootkit or their results can be filtered. `/proc` shows the truth even if `ps` lies. 
+
 	- monitoring:
-		- `ls -la /proc/[0-9*/exe 2>/dev/null | grep /tmp` - processes running from `/tmp`,
+		- `ls -la /proc/[0-9]*/exe 2>/dev/null | grep /tmp` - processes running from `/tmp`,
 		- `grep LD_PRELOAD /proc/*/environ` - searching for injected libraries.
 - `/boot`:
 	- why it is important: contains boot files which, if modified, it means that potential backdoor can starts before the system. 
 	- threats: 
-		- kernel replace (vmlinuz) - rootkit in kernel level, 
-		- modification of initramfs (Initial RAM Filesystem) - backdoor before file system. Initramfs is a temporary file system, which is loaded to the RAM memory with kernel. It contains the necessary and scripts, which allow reading the correct file system form disk, 
-		- modification of GRUB - adding the `init=/bin/bash` parameter -> root without password. GRUB (Grand Unified Bootloader) is the first program which runs after switching on the computer. It's task is to load system kernel from the disk into memory and hand over control to it. It shows the menu with a choosing system (Linux, Windows). 
+		- kernel replacement (vmlinuz) - rootkit in kernel level, 
+		- modification of initramfs (Initial RAM Filesystem) - backdoor before file system. Initramfs is a temporary file system, which is loaded to the RAM memory with kernel. It contains the necessary drivers and scripts, which allow reading the correct file system from disk, 
+		- modification of GRUB - adding the `init=/bin/bash` parameter -> root without password. GRUB (Grand Unified Bootloader) is the first program which runs after switching on the computer. Its task is to load system kernel from the disk into memory and hand over control to it. It shows the menu with a choosing system (Linux, Windows). 
 	- monitoring: 
 		- `ls -la /boot` - if files have a normal date instead of yesterday's, 
 		- `md5sum /boot/vmlinuz-$(uname-r)` - comparing with a clean installation if possible. 
 - `/lib`, `/usr/lib`:
 	- why it is important: if shared libraries are replaced, they affect many programs at the same time. 
 	- threats: 
-		- replacing `libc.so` - rootkit influence on all programs, 
-		- adding own library and using LD_PRELOAD - inject own library, 
-		- replaced libraries PAM (`libpam.so`) - weakening authentication.
+		- replacing `libc.so` - rootkit affects all programs, 
+		- adding an own library and using LD_PRELOAD - inject own library, 
+		- replacing PAM libraries (`libpam.so`) - weakening authentication.
 	- monitoring: 
-		- `ldd /bin/ls` - checking which libraries a program use, 
+		- `ldd /bin/ls` - checking which libraries a program uses, 
 		- `md5sum /lib/libc.so.6` - comparing with a clean installation, 
-		- `grep LD_PRELOAD /proc/*environ` - detecting injection.
+		- `grep LD_PRELOAD /proc/*/environ` - detecting injection.
 - `/bin`, `/sbin`, `/usr/bin`:
 	- why it is important: these are basic system programs which, if they are replaced, an attacker can hide their presence.
 	- threats: 
 		- replacing `ls` - hide files, 
 		- replacing `ps` - hide processes, 
-		- replacing `netstat`, or `ss` - hide network connections, 
-		replacing `/usr/sbin/sshd` - backdoor in the login level. 
+		- replacing `netstat` or `ss` - hide network connections, 
+		- replacing `/usr/sbin/sshd` - backdoor at the login level. 
 	- monitoring:
-		- `md5sum /bin/sl /bin/ps /usr/bin/netstat` - comparing with a clean installation, 
+		- `md5sum /bin/ls /bin/ps /usr/bin/netstat` - comparing with a clean installation, 
 		- `rkhunter --check` - automatic scanning.
