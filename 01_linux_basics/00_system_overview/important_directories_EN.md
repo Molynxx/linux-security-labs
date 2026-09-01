@@ -72,12 +72,12 @@ Identify which directories are crucial to SOC and what risks are associated with
 		- modification of GRUB - adding the `init=/bin/bash` parameter -> root without password. GRUB (Grand Unified Bootloader) is the first program which runs after switching on the computer. Its task is to load system kernel from the disk into memory and hand over control to it. It shows the menu with a choosing system (Linux, Windows). 
 	- monitoring: 
 		- `ls -la /boot` - if files have a normal date instead of yesterday's, 
-		- `md5sum /boot/vmlinuz-$(uname-r)` - comparing with a clean installation if possible. 
+		- `md5sum /boot/vmlinuz-$(uname -r)` - comparing with a clean installation if possible. 
 - `/lib`, `/usr/lib`:
 	- why it is important: if shared libraries are replaced, they affect many programs at the same time. 
 	- threats: 
 		- replacing `libc.so` - rootkit affects all programs, 
-		- adding an own library and using LD_PRELOAD - inject own library, 
+		- adding a custom library and using LD_PRELOAD - inject own library, 
 		- replacing PAM libraries (`libpam.so`) - weakening authentication.
 	- monitoring: 
 		- `ldd /bin/ls` - checking which libraries a program uses, 
