@@ -28,7 +28,7 @@ This is a file, which sets default values for `useradd` command.
 	- `EXPIRE=` for the `EXPIRE` parameter. 
 
 ### /etc/default/grub
-This is GRUB bootloader configuration, in influences on how the system starts up.
+This is GRUB bootloader configuration, it influences on how the system starts up.
 - essential parameters:
 	- `GRUB_CMDLINE_LINUX_DEFAULT` - parameters passed to the kernel during a normal boot, 
 	- `GRUB_CMDLINE_LINUX` - parameters passed to the kernel in emergency mode, 
@@ -48,14 +48,14 @@ Important: the GRUB modification requires root access or physical access to the 
 ### /etc/default/cron
 This file sets environment variables for cron jobs. 
 - threats: 
-	- low risk, an attacker could set the `PATH` variable or `LD_PRELOAD` variable for the cron, but it requires the root access and in that case he already has full root access anyway. Set `LD_PRELOAD` in this file allow to inject a library in to all cron jobs launched as root. This means that each planned script (e.g. backup, clearing logs) will be performed witch the injected library which e.g. sends the data, create backdoors or changes command results - all without visible changes to the cron scripts themselves. Although it requires root access, it is an effective method of maintaining access (persistence) - survive system restarts, is not visible in `crontab -l` and the injected library is executed every time a scheduled cron job runs, which makes it difficult to detect during a standard audit. 
+	- low risk, an attacker could set the `PATH` variable or `LD_PRELOAD` variable for the cron, but it requires the root access and in that case he already has full root access anyway. Set `LD_PRELOAD` in this file allow to inject a library in to all cron jobs launched as root. This means that each planned script (e.g. backup, clearing logs) will be performed with the injected library which e.g. sends the data, creates backdoors or changes command results - all without visible changes to the cron scripts themselves. Although it requires root access, it is an effective method of maintaining access (persistence) - survive system restarts, is not visible in `crontab -l` and the injected library is executed every time a scheduled cron job runs, which makes it difficult to detect during a standard audit. 
 - detecting:
-	- `/etc/default/cron` - the environment variable settings should be checked. (Correct environmental variables setting is described in more detail in the file `05_pam_basics/security/pam_env.EN.md`). 
+	- `/etc/default/cron` - the environment variable settings should be checked. (Correct environmental variables setting is described in more detail in the file `05_pam_basics/security/pam_env_EN.md`). 
 - repair:
 	- restore the correct environment variables values. 
 
 ### /etc/default/locale
-This file sets default language variables for the system. (Described in more detail in the file 05_pam_basics.security/pam_env_EN.md). 
+This file sets default language variables for the system. (Described in more detail in the file 05_pam_basics/security/pam_env_EN.md). 
 - threats:
 	- change `LANG` or `LC_ALL` may disrupt the operation of scripts. Change `LANG` to a different (e.g. from pl_PL.UTF-8 to en_US.UTF-8) may change date format in logs, what makes it difficult to parse them automatically using SIEM or analytics scripts. An attacker may deliberately set an unusual location to delay detection or cause confusion during analysis. 
 - detecting: 
