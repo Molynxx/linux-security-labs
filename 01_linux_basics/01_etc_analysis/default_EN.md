@@ -15,7 +15,7 @@ This is a file, which sets default values for `useradd` command.
 	- `SHELL` - default shell for new users (`/bin/bash`), 
 	- `INACTIVE` - how many days after the password has expired an account is blocked (`-1` - never),
 - threats:
-	- `SHELL=/bin/false` or `/sbin/nologin` sets in the `SHELL` parameter causes that new users to be unable to log in, which may be deliberate (e.g. services accounts) or an administration mistake, 
+	- `SHELL=/bin/false` or `/sbin/nologin` set in the `SHELL` parameter causes that new users to be unable to log in, which may be deliberate (e.g. service accounts) or an administration mistake, 
 	- `SHELL=/home/attacker/shell` - an attacker can take over a new account (applying their own shell),
 	- `HOME=/tmp` - home directories in `/tmp` means that anyone can read other users' data, 
 	- `INACTIVE=-1` - the account will never be blocked after the password has expired. It is good practice to set `INACTIVE=0` value which will ensure that the account is blocked immediately after the password has expired.
@@ -28,7 +28,7 @@ This is a file, which sets default values for `useradd` command.
 	- `EXPIRE=` for the `EXPIRE` parameter. 
 
 ### /etc/default/grub
-This is GRUB bootloader configuration, it influences on how the system starts up.
+This is GRUB bootloader configuration, it influences how the system starts up.
 - essential parameters:
 	- `GRUB_CMDLINE_LINUX_DEFAULT` - parameters passed to the kernel during a normal boot, 
 	- `GRUB_CMDLINE_LINUX` - parameters passed to the kernel in emergency mode, 
@@ -48,23 +48,23 @@ Important: the GRUB modification requires root access or physical access to the 
 ### /etc/default/cron
 This file sets environment variables for cron jobs. 
 - threats: 
-	- low risk, an attacker could set the `PATH` variable or `LD_PRELOAD` variable for the cron, but it requires the root access and in that case he already has full root access anyway. Set `LD_PRELOAD` in this file allow to inject a library in to all cron jobs launched as root. This means that each planned script (e.g. backup, clearing logs) will be performed with the injected library which e.g. sends the data, creates backdoors or changes command results - all without visible changes to the cron scripts themselves. Although it requires root access, it is an effective method of maintaining access (persistence) - survive system restarts, is not visible in `crontab -l` and the injected library is executed every time a scheduled cron job runs, which makes it difficult to detect during a standard audit. 
+	- low risk, an attacker could set the `PATH` variable or `LD_PRELOAD` variable for the cron, but it requires the root access and in that case he already has full root access anyway. Setting `LD_PRELOAD` in this file allow to injecting a library into all cron jobs launched as root. This means that each planned script (e.g. backup, clearing logs) will be performed with the injected library which e.g. sends the data, creates backdoors or changes command results - all without visible changes to the cron scripts themselves. Although it requires root access, it is an effective method of maintaining access (persistence) - it survives system restarts, is not visible in `crontab -l` and the injected library is executed every time a scheduled cron job runs, which makes it difficult to detect during a standard audit. 
 - detecting:
-	- `/etc/default/cron` - the environment variable settings should be checked. (Correct environmental variables setting is described in more detail in the file `05_pam_basics/security/pam_env_EN.md`). 
+	- `/etc/default/cron` - the environment variable settings should be checked. (Correct environment variables settings is described in more detail in the file `05_pam_basics/security/pam_env_EN.md`). 
 - repair:
 	- restore the correct environment variables values. 
 
 ### /etc/default/locale
 This file sets default language variables for the system. (Described in more detail in the file 05_pam_basics/security/pam_env_EN.md). 
 - threats:
-	- change `LANG` or `LC_ALL` may disrupt the operation of scripts. Change `LANG` to a different (e.g. from pl_PL.UTF-8 to en_US.UTF-8) may change date format in logs, what makes it difficult to parse them automatically using SIEM or analytics scripts. An attacker may deliberately set an unusual location to delay detection or cause confusion during analysis. 
+	- changing `LANG` or `LC_ALL` may disrupt the operation of scripts. Changing `LANG` to a different (e.g. from pl_PL.UTF-8 to en_US.UTF-8) may change date format in logs, which makes it difficult to parse them automatically using SIEM or analytics scripts. An attacker may deliberately set an unusual locale to delay detection or cause confusion during analysis. 
 - detecting: 
 	- `cat /etc/default/locale` - it should be checked `LANG` value for the `LANG` and `LC_ALL`. 
 - repair:
 	- restore correct parameter values. 
 
 ### /etc/default/ssh
-This file is usually empty in contemporary systems, SSH has own configuration in the `/etc/ssh/sshd_config` file. 
+This file is usually empty in contemporary systems, SSH has its own configuration in the `/etc/ssh/sshd_config` file. 
 
 ## Safety conclusions
-`/etc/default` is not the first place where an attacker hits because most of the files located here require root access for modification. If the attacker has root access already, they can cause far more damages than simply modifying files in this directory. However, it's worth keeping in mind that such a risk exists.
+`/etc/default` is not the first place where an attacker hits because most of the files located here require root access for modification. If the attacker has root access already, they can cause far more damage than simply modifying files in this directory. However, it's worth keeping in mind that such a risk exists.
