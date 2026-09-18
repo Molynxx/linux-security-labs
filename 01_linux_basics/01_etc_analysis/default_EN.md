@@ -38,7 +38,7 @@ This is GRUB bootloader configuration, it influences how the system starts up.
 - detecting:
 	- `cat /etc/default/grub | grep "init="`, 
 	- `grep "init=" /boot/grub/grub.cfg`.   
-The commands mentioned above allows checking the value entered in `init` parameter. It should be checked if this parameter has a suspicious value (e.g. `/bin/bash`). In a correct configuration `init` parameter doesn't exist in `GRUB_CMDLINE_LINUX_DEFAULT`. 
+The commands mentioned above allow checking the value entered in `init` parameter. It should be checked if this parameter has a suspicious value (e.g. `/bin/bash`). In a correct configuration `init` parameter doesn't exist in `GRUB_CMDLINE_LINUX_DEFAULT`. 
 - repair:
 	- remove/change the suspicious parameter from `/etc/default/grub`, 
 	- run the `sudo update-grub`, 
@@ -55,7 +55,7 @@ This file sets environment variables for cron jobs.
 	- restore the correct environment variable values. 
 
 ### /etc/default/locale
-This file sets default language variables for the system. (Described in more detail in the file 05_pam_basics/security/pam_env_EN.md). 
+This file sets default language variables for the system. (Described in more detail in the file `05_pam_basics/security/pam_env_EN.md`). 
 - threats:
 	- changing `LANG` or `LC_ALL` may disrupt the operation of scripts. Changing `LANG` to a different (e.g. from pl_PL.UTF-8 to en_US.UTF-8) may change date format in logs, which makes it difficult to parse them automatically using SIEM or analytics scripts. An attacker may deliberately set an unusual locale to delay detection or cause confusion during analysis. 
 - detecting: 
