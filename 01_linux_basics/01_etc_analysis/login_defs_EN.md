@@ -27,7 +27,7 @@ Other parameters don't apply to PAM. It is necessary to remember that `login.def
 	- `CREATE_HOME` - applies to the `useradd` command, if it is set to 'yes' the command will create a home directory by default when adding a user, 
 - password hashing:
 	- `ENCRYPT_METHOD` - determines the hashing algorithm (SHA-512, YESCRYPT, etc.). This parameter is of great importance for security, because a weak hashing algorithm increases the risk of password cracking,
-	- `SHA_CRYPT_MAX_ROUNDS` - determines the complexity  of hashing, a low value means faster hashing, but weaker hashing ass well. How is this: the system takes the password, hashes it and next takes the result and hashes it again, and repeats it thousands of times. Thanks to this cracking the password by an attacker takes years and it is impossible to crack it in a few seconds, minutes or hours. For SHA-512, the default is 5000 rounds.
+	- `SHA_CRYPT_MAX_ROUNDS` - determines the complexity  of hashing, a low value means faster hashing, but weaker hashing as well. How is this: the system takes the password, hashes it and next takes the result and hashes it again, and repeats it thousands of times. Thanks to this, cracking the password by an attacker takes years and it is impossible to crack it in a few seconds, minutes or hours. For SHA-512, the default is 5000 rounds.
 - delay on error:
 	- `FAIL_DELAY` - the delay in seconds occurring after typing an incorrect password, makes brute force attacks more difficult. This parameter is used by the `pam_faildelay.so` PAM module. 
 
