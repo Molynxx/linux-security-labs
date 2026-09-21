@@ -24,7 +24,7 @@ Other parameters don't apply to PAM. It is necessary to remember that `login.def
 - privileges:
 	- `UMASK` - default privileges for newly created files. `UMASK` works by removing privileges. It is important, as the entry 077 strips all privileges for the group and others, so the owner has access. (NOTE: root always has access, regardless of privileges). The recommended value is 027 or 077 to protect users' data from others' access. 
 - home directory:
-	- `CREATE_HOME` - applies to the `useradd` command, if it is set to 'yes' the command will create a home directory by default when user adding, 
+	- `CREATE_HOME` - applies to the `useradd` command, if it is set to 'yes' the command will create a home directory by default when adding a user, 
 - password hashing:
 	- `ENCRYPT_METHOD` - determines the hashing algorithm (SHA-512, YESCRYPT, etc.). This parameter is of great importance for security, because a weak hashing algorithm increases the risk of password cracking,
 	- `SHA_CRYPT_MAX_ROUNDS` - determines the complexity  of hashing, a low value means faster hashing, but weaker hashing ass well. How is this: the system takes the password, hashes it and next takes the result and hashes it again, and repeats it thousands of times. Thanks to this cracking the password by an attacker takes years and it is impossible to crack it in a few seconds, minutes or hours. For SHA-512, the default is 5000 rounds.
@@ -46,6 +46,6 @@ Monitoring the essential parameters in the `/etc/login.defs` file is very import
 - `grep -E SU_WHEEL_ONLY /etc/login.defs` - checking `su` restrictions, 
 - `grep -E "UMASK|ENCRYPT_METHOD|FAIL_DELAY" /etc/login.defs` - checking privileges, the hashing algorithm, and the delay, 
 - `sudo find /etc/login.defs -type f -mtime -1 -ls` - checking if the file hasn't been modified in the last days, 
-- changes in `login.defs` file don't affect already existing accounts, so e.g. UID_MIN doesn't affect already existing users, 
+- changes in the `login.defs` file don't affect already existing accounts, so e.g. UID_MIN doesn't affect already existing users, 
 - some changes (e.g `UMASK`) in 'login.defs` file require re-login, others (e.g. `ENCRYPT_METHOD`) are read during creating a new user. 
 
